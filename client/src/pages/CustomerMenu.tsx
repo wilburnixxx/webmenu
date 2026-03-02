@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { menuService, orderService } from '../api';
 import DishCard from '../components/DishCard';
-import { ShoppingBag, Plus, Minus, Send, ChevronUp, X, ChefHat } from 'lucide-react';
+import { ShoppingBag, Plus, Minus, Send, ChevronUp, X, ChefHat, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 
 const CustomerMenu = () => {
+    const navigate = useNavigate();
     const [activeCategory, setActiveCategory] = useState('');
     const [isAiOpen, setIsAiOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
@@ -175,6 +177,19 @@ const CustomerMenu = () => {
                                 {cart.length}
                             </span>
                         )}
+                    </button>
+
+                    <button
+                        onClick={() => navigate('/login')}
+                        style={{
+                            background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+                            color: 'var(--text-primary)', padding: '6px 12px', borderRadius: '12px',
+                            display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
+                            marginLeft: '4px'
+                        }}
+                    >
+                        <User size={16} />
+                        <span style={{ fontSize: '10px', fontWeight: '900', letterSpacing: '0.5px' }}>STAFF</span>
                     </button>
                 </div>
             </header>
