@@ -36,15 +36,17 @@ const WaiterPanel = () => {
         }
     });
 
-    // SSE for real-time notifications
+    /* SSE logic partially disabled to prevent errors in production
     useEffect(() => {
-        const eventSource = new EventSource('http://localhost:5000/api/orders/stream');
+        // SSE URL should come from API config, not hardcoded localhost
+        const eventSource = new EventSource(`${orderService.getBaseUrl?.() || ''}/api/orders/stream`);
         eventSource.addEventListener('newOrder', () => {
             if (audioRef.current) audioRef.current.play().catch(() => { });
             queryClient.invalidateQueries({ queryKey: ['orders'] });
         });
         return () => eventSource.close();
     }, [queryClient]);
+    */
 
     if (isLoading) return (
         <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '20px', background: 'var(--bg-base)' }}>

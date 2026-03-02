@@ -6,16 +6,11 @@ import { PrismaClient } from '@prisma/client';
 
 dotenv.config();
 
-console.log('🏁 Запуск сервера...');
-console.log('📌 Порт:', process.env.PORT || 5000);
-
+console.log('🏁 Запуск сервера v2.0.4 - Fix Delete...');
 const app = express();
 const PORT = process.env.PORT || 5000;
-const DB_STATUS = process.env.DATABASE_URL ? 'PRESENT' : 'MISSING';
-console.log('🔗 DATABASE_URL:', DB_STATUS);
 
 let prisma;
-
 try {
     prisma = new PrismaClient();
     console.log('💎 Prisma Client инициализирован');
@@ -23,66 +18,58 @@ try {
     console.error('❌ Ошибка инициализации Prisma:', e.message);
 }
 
-// 1. Максимально открытый CORS
-app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
-}));
-
+app.use(cors({ origin: '*', methods: '*', allowedHeaders: '*' }));
 app.use(express.json());
 
-// 2. Логирование запросов (для Railway Logs)
 app.use((req, res, next) => {
     console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
     next();
 });
 
-// 3. Health Checks
-app.get('/', (req, res) => {
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.send('<h1>QR Menu Server v2.0.2</h1><p>Статус: Работает</p>');
-});
+app.get('/', (req, res) => res.send('<h1>QR Menu Server v2.0.4</h1>'));
 
 app.get('/health', async (req, res) => {
     try {
-        if (!prisma) throw new Error('Prisma не инициализирована');
         await prisma.$queryRaw`SELECT 1`;
-        res.json({ status: 'ok', db: 'up', time: new Date().toISOString() });
-    } catch (e) {
-        console.error('❌ Health check failed:', e.message);
-        res.status(500).json({ status: 'error', db: 'down', err: e.message });
-    }
+        res.json({ status: 'ok', db: 'up' });
+    } catch (e) { res.status(500).json({ status: 'error', db: 'down', err: e.message }); }
 });
 
-// --- API МАРШРУТЫ ---
-
 const safeQuery = async (res, fn) => {
-    try {
-        const data = await fn();
-        res.json(data);
-    } catch (e) {
-        console.error('❌ Ошибка запроса:', e.message);
+    try { res.json(await fn()); }
+    catch (e) {
+        console.error('❌ Ошибка:', e.message);
         res.status(500).json({ error: e.message });
     }
 };
 
-// Категории
+// --- МАРШРУТЫ КАТЕГОРИЙ ---
 app.get(['/categories', '/api/categories'], (req, res) => safeQuery(res, () => (prisma as any).category.findMany()));
 app.post(['/categories', '/api/categories'], (req, res) => safeQuery(res, () => (prisma as any).category.upsert({
     where: { name: req.body.name },
     update: {},
     create: { name: req.body.name }
 })));
+app.delete(['/categories/:id', '/api/categories/:id'], (req, res) => safeQuery(res, () => (prisma as any).category.delete({ where: { id: req.params.id } })));
 
-// Блюда (Меню)
+// --- МАРШРУТЫ БЛЮД ---
 app.get(['/menu', '/api/menu', '/api/admin/menu'], (req, res) => safeQuery(res, () => prisma.dish.findMany()));
 app.post(['/dishes', '/api/dishes'], (req, res) => {
     const data = { ...req.body, price: parseFloat(req.body.price) || 0 };
     safeQuery(res, () => prisma.dish.create({ data }));
 });
+app.put(['/dishes/:id', '/api/dishes/:id'], (req, res) => {
+    const data = { ...req.body, price: parseFloat(req.body.price) || 0 };
+    safeQuery(res, () => prisma.dish.update({ where: { id: req.params.id }, data }));
+});
 
-// Заказы
+// ИСПРАВЛЕННЫЙ МАРШРУТ УДАЛЕНИЯ (БЕЗ /api ПРЕФИКСА ПРИ НЕОБХОДИМОСТИ)
+app.delete(['/dishes/:id', '/api/dishes/:id'], (req, res) => {
+    console.log(`🗑️ Удаление блюда с ID: ${req.params.id}`);
+    safeQuery(res, () => prisma.dish.delete({ where: { id: req.params.id } }));
+});
+
+// --- МАРШРУТЫ ЗАКАЗОВ ---
 app.get(['/orders', '/api/orders'], (req, res) => safeQuery(res, () => prisma.order.findMany({
     include: { items: { include: { dish: true } } },
     orderBy: { createdAt: 'desc' }
@@ -95,24 +82,18 @@ app.post(['/orders', '/api/orders'], (req, res) => {
             tableNumber,
             totalPrice: parseFloat(totalPrice) || 0,
             comments,
+            status: 'PENDING',
             items: { create: items.map(it => ({ dishId: it.dishId, quantity: it.quantity, price: it.price })) }
         }
     }));
 });
 
-// 4. Глобальный обработчик ошибок
-app.use((err, req, res, next) => {
-    console.error('🔥 КРИТИЧЕСКАЯ ОШИБКА СЕРВЕРА:', err);
-    res.status(500).send('Internal Server Error');
+app.patch(['/orders/:id', '/api/orders/:id'], (req, res) => {
+    const { status } = req.body;
+    safeQuery(res, () => prisma.order.update({
+        where: { id: req.params.id },
+        data: { status }
+    }));
 });
 
-// 5. Запуск (Слушаем на всех интерфейсах)
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`
-    ✅===========================================
-    🚀 СЕРВЕР ЗАПУЩЕН И ГОТОВ К РАБОТЕ!
-    📍 Порт: ${PORT}
-    📡 Доступен на: 0.0.0.0 (Railway Required)
-    =============================================
-    `);
-});
+app.listen(PORT, '0.0.0.0', () => console.log(`🚀 СЕРВЕР ЗАПУЩЕН НА ПОРТУ ${PORT}`));

@@ -44,16 +44,13 @@ const AdminDashboard = () => {
 
     // Mutations
     const deleteMutation = useMutation({
-        mutationFn: (id: string) => {
-            if (window.confirm('Переместить это блюдо в корзину на 7 дней?')) {
-                return menuService.deleteDish(id);
-            }
-            throw new Error('Cancelled');
-        },
+        mutationFn: (id: string) => menuService.deleteDish(id),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin-menu'] });
-            queryClient.invalidateQueries({ queryKey: ['trash'] });
             queryClient.invalidateQueries({ queryKey: ['metrics'] });
+        },
+        onError: (err: any) => {
+            alert('Ошибка при удалении: ' + (err.response?.data?.error || err.message));
         }
     });
 
