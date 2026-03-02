@@ -69,7 +69,7 @@ const AdminDashboard = () => {
     });
 
     const adjMutation = useMutation({
-        mutationFn: menuService.createAdjustment,
+        mutationFn: (data: { metricName: string, value: string | number, note: string }) => menuService.createAdjustment(data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['metrics'] });
             setIsAdjusting(false);
@@ -139,9 +139,9 @@ const AdminDashboard = () => {
                 </div>
 
                 <div style={{ display: 'flex', gap: '4px', background: 'var(--bg-secondary)', padding: '6px', borderRadius: '16px', overflowX: 'auto', maxWidth: '100%', scrollbarWidth: 'none' }}>
-                    {(['dishes', 'categories', 'ai', 'qr', 'logs', 'trash'] as const).map(tab => (
+                    {(['dishes', 'categories', 'ai', 'qr', 'logs', 'trash'] as const).map((tab: string) => (
                         <button key={tab}
-                            onClick={() => setActiveTab(tab)}
+                            onClick={() => setActiveTab(tab as any)}
                             style={{
                                 padding: '10px 20px', borderRadius: '12px', border: 'none', cursor: 'pointer',
                                 fontSize: '13px', fontWeight: '800', whiteSpace: 'nowrap',
@@ -151,7 +151,7 @@ const AdminDashboard = () => {
                                 transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)'
                             }}
                         >
-                            {tabLabels[tab]}
+                            {tabLabels[tab as keyof typeof tabLabels]}
                         </button>
                     ))}
                 </div>
@@ -175,8 +175,8 @@ const AdminDashboard = () => {
             {/* Tab Contents */}
             <AnimatePresence mode="wait">
                 {activeTab === 'dishes' && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '24px' }}>
-                        {dishes?.map((dish: any) => (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '24px' }}>
+                        {dishes?.map((dish: { id: string; imageUrl: string; category: string; name: string; price: number; description: string; }) => (
                             <div key={dish.id} className="card" style={{ display: 'flex', flexDirection: 'column' }}>
                                 <div style={{ position: 'relative', paddingTop: '60%', overflow: 'hidden' }}>
                                     <img src={dish.imageUrl} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />

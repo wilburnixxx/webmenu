@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { orderService, menuService } from '../api';
 import { CheckCircle, Clock, ChefHat, XCircle, Archive, Layout } from 'lucide-react';
@@ -26,7 +26,7 @@ const WaiterPanel = () => {
         queryFn: menuService.getMenu
     });
 
-    const activeOrders = allOrders?.filter(o => o.status !== 'ARCHIVED');
+    const activeOrders = (allOrders as any[])?.filter((o: any) => o.status !== 'ARCHIVED');
 
     const statusMutation = useMutation({
         mutationFn: ({ orderId, status }: { orderId: string, status: string }) =>
@@ -39,7 +39,7 @@ const WaiterPanel = () => {
     /* SSE logic partially disabled to prevent errors in production
     useEffect(() => {
         // SSE URL should come from API config, not hardcoded localhost
-        const eventSource = new EventSource(`${orderService.getBaseUrl?.() || ''}/api/orders/stream`);
+        const eventSource = new EventSource(`${(orderService as any).getBaseUrl?.() || ''}/api/orders/stream`);
         eventSource.addEventListener('newOrder', () => {
             if (audioRef.current) audioRef.current.play().catch(() => { });
             queryClient.invalidateQueries({ queryKey: ['orders'] });
@@ -85,7 +85,7 @@ const WaiterPanel = () => {
             {/* Main Order Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 'clamp(16px, 3vw, 32px)' }}>
                 <AnimatePresence>
-                    {activeOrders?.map(order => (
+                    {activeOrders?.map((order: any) => (
                         <motion.div
                             key={order.id}
                             layout

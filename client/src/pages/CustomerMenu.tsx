@@ -36,7 +36,7 @@ const CustomerMenu = () => {
     });
 
     useEffect(() => {
-        if (activeOrder?.status === 'ARCHIVED') {
+        if ((activeOrder as any)?.status === 'ARCHIVED') {
             localStorage.removeItem('activeOrderId');
             setActiveOrderId(null);
             setIsStatusModalOpen(false);
@@ -46,8 +46,8 @@ const CustomerMenu = () => {
     const { cart, addToCart, removeFromCart, totalPrice, clearCart } = useCart();
 
     const orderMutation = useMutation({
-        mutationFn: orderService.createOrder,
-        onSuccess: (data) => {
+        mutationFn: (data: any) => orderService.createOrder(data),
+        onSuccess: (data: any) => {
             clearCart();
             setIsCartOpen(false);
             setActiveOrderId(data.id);
@@ -57,7 +57,7 @@ const CustomerMenu = () => {
         onError: () => alert('Ошибка при отправке заказа')
     });
 
-    const categories = [...new Set(dishes?.map(d => d.category).filter(Boolean) || [])];
+    const categories = Array.from(new Set((dishes as any[])?.map((d: any) => d.category).filter(Boolean) || []));
 
     const scrollToCategory = (catName: string) => {
         const element = document.getElementById(`category-${catName}`);
@@ -74,7 +74,7 @@ const CustomerMenu = () => {
         orderMutation.mutate({
             tableNumber,
             totalPrice: totalPrice,
-            items: cart.map(item => ({ dishId: item.dish.id, quantity: item.quantity, price: item.dish.price })),
+            items: (cart as any[]).map((item: any) => ({ dishId: item.dish.id, quantity: item.quantity, price: item.dish.price })),
             comments: ""
         });
     };

@@ -54,7 +54,7 @@ export const menuService = {
     getMetrics: async () => {
         try {
             return (await api.get('/metrics')).data;
-        } catch (e) {
+        } catch (e: any) {
             console.error('Ошибка в Метриках:', e.message);
             return { totalOrders: 0, totalRevenue: 0, totalDishes: 0, topDishes: [] };
         }
@@ -63,13 +63,14 @@ export const menuService = {
         try {
             const res = await api.get('/logs');
             return Array.isArray(res.data) ? res.data : [];
-        } catch (e) {
+        } catch (e: any) {
             console.error('Ошибка в Журнале:', e.message);
             return [];
         }
     },
     getAiInstructions: async () => ({ promptText: '' }),
     saveAiInstructions: async (t: string) => ({}),
+    createAdjustment: async (data: any) => (await api.post('/metrics/adjust', data)).data,
     sendMessage: async (messages: any[]) => (await api.post('/ai/chat', { messages })).data
 };
 
