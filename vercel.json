@@ -4,10 +4,26 @@
     "cleanUrls": true,
     "trailingSlash": false,
     "framework": "vite",
-    "rewrites": [
+    "routes": [
         {
-            "source": "/(.*)",
-            "destination": "/index.html"
+            "src": "/assets/(.*)",
+            "dest": "/assets/$1"
+        },
+        {
+            "src": "/admin(.*)",
+            "dest": "/index.html"
+        },
+        {
+            "src": "/waiter(.*)",
+            "dest": "/index.html"
+        },
+        {
+            "src": "/menu(.*)",
+            "dest": "/index.html"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/index.html"
         }
     ]
 }
