@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "npx prisma@6.4.0 generate --schema=server/prisma/schema.prisma && npm install --prefix client && npm run build --prefix client",
     "lint": "eslint .",
     "preview": "vite preview"
   },

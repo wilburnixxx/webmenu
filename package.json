@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "npx prisma generate --schema=server/prisma/schema.prisma && npm install --prefix client && npm run build --prefix client"
-  },
+    "build": "npx prisma@6.4.0 generate --schema=server/prisma/schema.prisma && npm install --prefix client && npm run build --prefix client"
+   },
   "devDependencies": {
-    "prisma": "^7.4.2",
+    "prisma": "6.4.0",
     "typescript": "^5.9.3"
   },
   "dependencies": {
