@@ -4,18 +4,23 @@
 
 ---
 
-## Вариант 1: Railway.app (Самый быстрый и надежный)
+## Вариант 1: Vercel (Только Frontend) + Railway (Backend)
 
-Railway — отличный сервис, который автоматически подхватит ваш репозиторий с GitHub.
+Это самый современный и производительный способ.
 
-### Шаги:
-1. Зарегистрируйтесь на [Railway.app](https://railway.app/) через GitHub.
-2. Нажмите **"New Project"** -> **"Deploy from GitHub repo"**.
-3. Выберите ваш репозиторий `webmenu`.
-4. В настройках сервиса (Variables) добавьте переменные из вашего `.env`:
-   - `GEMINI_API_KEY` (ваш ключ от Google)
-   - `PORT=5000` (для сервера)
-5. **Важно (Persistence):** В настройках сервера добавьте **Mount Volume**. Укажите путь `/app/server/qrmenu.db`, чтобы база данных сохранялась.
+### Часть 1: Frontend на Vercel
+1. Подключите ваш GitHub к [Vercel](https://vercel.com/).
+2. Выберите репозиторий `webmenu`.
+3. **Root Directory**: установите `client`.
+4. **Build Command**: `npm run build`.
+5. **Output Directory**: `dist`.
+6. **Environment Variables**: Добавьте `VITE_API_URL` (здесь должен быть URL вашего бэкенда на Railway).
+
+### Часть 2: Backend на Railway
+1. Создайте проект на [Railway](https://railway.app/).
+2. Выберите папку `server` как корневую для деплоя (или весь репо, но укажите старт из `server`).
+3. Добавьте **Volume** (Mount Disk) для файла `qrmenu.db`.
+4. Перенесите `GEMINI_API_KEY` в переменные.
 
 ---
 

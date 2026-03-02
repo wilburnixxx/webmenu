@@ -1,0 +1,11 @@
+{
+    "version": 2,
+    "public": true,
+    "name": "webmenu-client",
+    "rewrites": [
+        {
+            "source": "/(.*)",
+            "destination": "/"
+        }
+    ]
+}

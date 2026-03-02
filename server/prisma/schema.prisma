@@ -5,7 +5,7 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -33,7 +33,7 @@ model Dish {
   imageUrl     String?
   category     String
   isAvailable  Boolean     @default(true)
-  allergens    String      @default("[]") // SQLite doesn't support String[]
+  allergens    String[]    @default([])
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   orderItems   OrderItem[]
@@ -72,6 +72,6 @@ model AIInstruction {
 model Metric {
   id        String   @id @default(uuid())
   eventType String
-  payload   String?  // SQLite doesn't have native JSON type in older versions, using String for safety
+  payload   Json?
   timestamp DateTime @default(now())
 }
