@@ -182,7 +182,11 @@ app.post(['/ai/chat', '/api/ai/chat'], async (req, res) => {
         const prompt = `${instruction?.promptText || ''}\n\nМеню:\n${menuContext}\n\nОтветь на: ${JSON.stringify(messages)}`;
         const result = await model.generateContent(prompt);
         res.json({ text: result.response.text() });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e: any) {
+        console.error('AI Error:', e.message);
+        const isQuota = e.message?.includes('429') || e.message?.includes('quota');
+        res.status(isQuota ? 429 : 500).json({ error: e.message });
+    }
 });
 
 // --- LOGS & METRICS ---
