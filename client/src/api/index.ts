@@ -1,29 +1,56 @@
 import axios from 'axios';
 
-const getBaseUrl = () => {
-    const envUrl = import.meta.env.VITE_API_URL;
-    if (envUrl) {
-        // Если ссылка есть, убеждаемся, что она с https
-        return envUrl.startsWith('http') ? envUrl : `https://${envUrl}`;
-    }
-    // Если работаем локально и VITE_API_URL не задан, стучимся на сервер 5000
-    return 'http://localhost:5000';
-};
+// 1. АВТО-ОПРЕДЕЛЕНИЕ URL (Локально или Railway)
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const BASE_URL = API_URL.startsWith('http') ? API_URL : `https://${API_URL}`;
 
-const API_BASE_URL = getBaseUrl();
-console.log('📡 API Стучится по адресу:', API_BASE_URL);
+console.log('📡 СЕРВИС: Подключение к API по адресу:', BASE_URL);
 
 const api = axios.create({
-    baseURL: API_BASE_URL,
+    baseURL: BASE_URL,
+    timeout: 8000,
     headers: { 'Content-Type': 'application/json' }
 });
 
+// 2. УНИВЕРСАЛЬНЫЙ СЕРВИС (Прямое управление)
 export const menuService = {
-    getMenu: async () => (await api.get('/menu')).data || [],
-    getAdminMenu: async () => (await api.get('/menu')).data || [],
-    createDish: async (d: any) => (await api.post('/dishes', d)).data,
-    getCategories: async () => (await api.get('/categories')).data || [],
+    // Категории
+    getCategories: async () => {
+        try {
+            const res = await api.get('/categories');
+            return Array.isArray(res.data) ? res.data : [];
+        } catch (e) {
+            console.error('Ошибка в Категориях:', e.message);
+            return [];
+        }
+    },
     createCategory: async (name: string) => (await api.post('/categories', { name })).data,
+    deleteCategory: async (id: string) => (await api.delete(`/categories/${id}`)),
+
+    // Блюда
+    getMenu: async () => {
+        try {
+            const res = await api.get('/menu');
+            return Array.isArray(res.data) ? res.data : [];
+        } catch (e) {
+            console.error('Ошибка в Меню:', e.message);
+            return [];
+        }
+    },
+    getAdminMenu: async () => {
+        try {
+            const res = await api.get('/menu');
+            return Array.isArray(res.data) ? res.data : [];
+        } catch (e) {
+            console.error('Ошибка в Админ-меню:', e.message);
+            return [];
+        }
+    },
+    createDish: async (d: any) => (await api.post('/dishes', d)).data,
+    updateDish: async (id: string, d: any) => (await api.put(`/dishes/${id}`, d)).data,
+    deleteDish: async (id: string) => (await api.delete(`/dishes/${id}`)).data,
+
+    // Метрики и прочее
     getMetrics: async () => ({ totalOrders: 0, totalRevenue: 0, totalDishes: 0 }),
     getLogs: async () => [],
     getAiInstructions: async () => ({ promptText: '' }),

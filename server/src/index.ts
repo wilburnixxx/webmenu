@@ -1,74 +1,101 @@
 // @ts-nocheck
-import dotenv from 'dotenv';
-dotenv.config();
-
 import express from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const prisma = new PrismaClient();
 
-// MANUAL CORS (Force everything)
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS,PATCH');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
-    if (req.method === 'OPTIONS') {
-        res.sendStatus(200);
-    } else {
-        next();
-    }
-});
-
+// 1. Бронебойный CORS
+app.use(cors({ origin: '*', methods: '*', allowedHeaders: '*' }));
 app.use(express.json());
 
-// Root check
-app.get('/', (req, res) => res.send('<h1>QR Menu Server v1.0.8</h1><p>Status: OK</p>'));
+// 2. Логирование запросов
+app.use((req, res, next) => {
+    console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
+    next();
+});
 
-// SUPPORT BOTH /path AND /api/path (Compatibility mode)
-const routes = ['/categories', '/menu', '/dishes', '/orders', '/admin/metrics', '/admin/ai-instructions', '/chat'];
-
-// Category logic
-const handleCategories = async (req, res) => {
+// 3. Health Checks
+app.get('/', (req, res) => res.send('OK v2.0.1'));
+app.get('/health', async (req, res) => {
     try {
-        if (req.method === 'GET') {
-            const data = await (prisma as any).category.findMany();
-            res.json(data);
-        } else if (req.method === 'POST') {
-            const item = await (prisma as any).category.create({ data: { name: req.body.name } });
-            res.status(201).json(item);
-        }
-    } catch (e) { res.status(500).json({ error: e.message }); }
-};
+        await prisma.$queryRaw`SELECT 1`;
+        res.json({ status: 'ok', db: 'up' });
+    } catch (e) { res.status(500).json({ status: 'error', db: 'down', err: e.message }); }
+});
 
-app.get('/categories', handleCategories);
-app.get('/api/categories', handleCategories);
-app.post('/categories', handleCategories);
-app.post('/api/categories', handleCategories);
+// --- API МАРШРУТЫ ---
 
-// Menu logic
-const handleMenu = async (req, res) => {
+// Категории
+app.get(['/categories', '/api/categories'], async (req, res) => {
+    try { res.json(await (prisma as any).category.findMany()); } catch (e) { res.json([]); }
+});
+
+app.post(['/categories', '/api/categories'], async (req, res) => {
     try {
-        const data = await prisma.dish.findMany();
-        res.json(data);
-    } catch (e) { res.json([]); }
-};
-app.get('/menu', handleMenu);
-app.get('/api/menu', handleMenu);
-app.get('/api/admin/menu', handleMenu);
-
-// Dish creation
-app.post(['/dishes', '/api/dishes'], async (req, res) => {
-    try {
-        const item = await prisma.dish.create({ data: { ...req.body, price: Number(req.body.price) } });
+        const item = await (prisma as any).category.upsert({
+            where: { name: req.body.name },
+            update: {},
+            create: { name: req.body.name }
+        });
         res.status(201).json(item);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 CORS-Enabled Server running on port ${PORT}`);
+app.delete(['/categories/:id', '/api/categories/:id'], async (req, res) => {
+    try { await (prisma as any).category.delete({ where: { id: req.params.id } }); res.sendStatus(204); }
+    catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-export default app;
+// Блюда (Меню)
+app.get(['/menu', '/api/menu', '/api/admin/menu'], async (req, res) => {
+    try { res.json(await prisma.dish.findMany()); } catch (e) { res.json([]); }
+});
+
+app.post(['/dishes', '/api/dishes'], async (req, res) => {
+    try {
+        const data = { ...req.body, price: parseFloat(req.body.price) || 0 };
+        res.status(201).json(await prisma.dish.create({ data }));
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.put(['/dishes/:id', '/api/dishes/:id'], async (req, res) => {
+    try {
+        const data = { ...req.body, price: parseFloat(req.body.price) || 0 };
+        res.json(await prisma.dish.update({ where: { id: req.params.id }, data }));
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete(['/dishes/:id', '/api/dishes/:id'], async (req, res) => {
+    try { await prisma.dish.delete({ where: { id: req.params.id } }); res.sendStatus(204); }
+    catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Заказы
+app.get(['/orders', '/api/orders'], async (req, res) => {
+    try { res.json(await prisma.order.findMany({ include: { items: { include: { dish: true } } }, orderBy: { createdAt: 'desc' } })); }
+    catch (e) { res.json([]); }
+});
+
+app.post(['/orders', '/api/orders'], async (req, res) => {
+    try {
+        const { tableNumber, items, totalPrice, comments } = req.body;
+        const order = await prisma.order.create({
+            data: {
+                tableNumber,
+                totalPrice: parseFloat(totalPrice) || 0,
+                comments,
+                items: { create: items.map(it => ({ dishId: it.dishId, quantity: it.quantity, price: it.price })) }
+            }
+        });
+        res.status(201).json(order);
+    } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Запуск
+app.listen(PORT, '0.0.0.0', () => console.log(`🚀 СУПЕР-СЕРВЕР ГОТОВ НА ПОРТУ ${PORT}`));
