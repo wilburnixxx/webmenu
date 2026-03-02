@@ -75,3 +75,8 @@ model Metric {
   payload   Json?
   timestamp DateTime @default(now())
 }
+
+model Category {
+  id    String @id @default(uuid())
+  name  String @unique
+}

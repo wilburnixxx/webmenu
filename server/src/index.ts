@@ -33,6 +33,35 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Category Routes
+app.get('/api/categories', async (req, res) => {
+    try {
+        const categories = await prisma.category.findMany();
+        res.json(categories);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch categories' });
+    }
+});
+
+app.post('/api/categories', async (req, res) => {
+    const { name } = req.body;
+    try {
+        const category = await prisma.category.create({ data: { name } });
+        res.status(201).json(category);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to create category' });
+    }
+});
+
+app.delete('/api/categories/:id', async (req, res) => {
+    try {
+        await prisma.category.delete({ where: { id: req.params.id } });
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to delete category' });
+    }
+});
+
 // Menu Routes (Public)
 app.get('/api/menu', async (req, res) => {
     try {
@@ -55,61 +84,27 @@ app.get('/api/admin/menu', async (req, res) => {
     }
 });
 
-// Create Order
-app.post('/api/orders', async (req, res) => {
-    const { tableNumber, items, totalPrice, comments } = req.body;
-
-    try {
-        const order = await prisma.order.create({
-            data: {
-                tableNumber,
-                totalPrice,
-                comments,
-                status: 'ACCEPTED',
-                items: {
-                    create: items.map((item: any) => ({
-                        dishId: item.dishId,
-                        quantity: item.quantity,
-                        price: item.price
-                    }))
-                }
-            },
-            include: { items: true }
-        });
-
-        // Notify SSE listeners
-        orderListeners.forEach((listener) => {
-            listener.res.write(`event: newOrder\n`);
-            listener.res.write(`data: ${JSON.stringify(order)}\n\n`);
-        });
-
-        res.status(201).json(order);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Failed to create order' });
-    }
-});
-
 // Dishes CRUD (Admin)
 app.post('/api/dishes', async (req, res) => {
-    const { name, description, price, imageUrl, category } = req.body;
+    const { name, description, price, imageUrl, category, allergens } = req.body;
     try {
         const dish = await prisma.dish.create({
-            data: { name, description, price, imageUrl, category }
+            data: { name, description, price, imageUrl, category, allergens: allergens || [] }
         });
         res.status(201).json(dish);
     } catch (error) {
+        console.error('Create dish error:', error);
         res.status(500).json({ error: 'Failed to create dish' });
     }
 });
 
 app.put('/api/dishes/:id', async (req, res) => {
     const { id } = req.params;
-    const { name, description, price, imageUrl, category, isAvailable } = req.body;
+    const { name, description, price, imageUrl, category, isAvailable, allergens } = req.body;
     try {
         await prisma.dish.update({
             where: { id },
-            data: { name, description, price, imageUrl, category, isAvailable }
+            data: { name, description, price, imageUrl, category, isAvailable, allergens: allergens || [] }
         });
         res.json({ success: true });
     } catch (error) {
@@ -127,43 +122,95 @@ app.delete('/api/dishes/:id', async (req, res) => {
     }
 });
 
-// AI Chat Assistant
-app.post('/api/chat', async (req, res) => {
-    const { messages } = req.body;
-
+// Admin Metrics & Logs
+app.get('/api/admin/metrics', async (req, res) => {
     try {
-        if (!process.env.GEMINI_API_KEY) {
-            throw new Error('GEMINI_API_KEY is not defined');
-        }
+        const totalOrders = await prisma.order.count();
+        const dishes = await prisma.dish.findMany();
+        const orders = await prisma.order.findMany();
+        const totalRevenue = orders.reduce((sum, o) => sum + o.totalPrice, 0);
 
-        const dishes = await prisma.dish.findMany({ where: { isAvailable: true } });
-        const menuContext = dishes.map((d: any) =>
-            `- ${d.name} (${d.category}): ${d.description}. Цена: ${d.price} руб.`
-        ).join('\n');
-
-        const systemInstruction = `
-            Ты — Алекс, сомелье нашего ресторана.
-            Используй меню:
-            ${menuContext}
-            Будь вежлив и краток.
-        `;
-
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-        const result = await model.generateContent([systemInstruction, ...messages.map((m: any) => m.content)]);
-        const response = await result.response;
-        res.json({ text: response.text() });
-    } catch (error: any) {
-        res.status(500).json({ error: error.message });
+        res.json({
+            totalOrders,
+            totalRevenue,
+            totalDishes: dishes.length,
+            topDishes: dishes.slice(0, 3) // Placeholder
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch metrics' });
     }
 });
 
-// Waiter Orders & Status
-app.get('/api/orders', async (req, res) => {
+app.get('/api/admin/logs', async (req, res) => {
     try {
-        const orders = await prisma.order.findMany({
-            include: { items: true },
+        const metrics = await prisma.metric.findMany({ orderBy: { timestamp: 'desc' }, take: 50 });
+        res.json(metrics.map(m => ({
+            id: m.id,
+            createdAt: m.timestamp,
+            action: m.eventType,
+            details: JSON.stringify(m.payload),
+            staffName: 'System'
+        })));
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch logs' });
+    }
+});
+
+app.get('/api/admin/ai-instructions', async (req, res) => {
+    try {
+        const instruction = await prisma.aIInstruction.findFirst({
+            where: { isActive: true },
             orderBy: { createdAt: 'desc' }
         });
+        res.json(instruction || { promptText: '' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch AI instructions' });
+    }
+});
+
+app.post('/api/admin/ai-instructions', async (req, res) => {
+    const { promptText } = req.body;
+    try {
+        const instruction = await prisma.aIInstruction.create({
+            data: { promptText, isActive: true }
+        });
+        res.status(201).json(instruction);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to save AI instructions' });
+    }
+});
+
+// Orders
+app.post('/api/orders', async (req, res) => {
+    const { tableNumber, items, totalPrice, comments } = req.body;
+    try {
+        const order = await prisma.order.create({
+            data: {
+                tableNumber: String(tableNumber),
+                totalPrice: Number(totalPrice),
+                comments,
+                status: 'ACCEPTED',
+                items: {
+                    create: items.map((item: any) => ({
+                        dishId: item.dishId,
+                        quantity: item.quantity,
+                        price: item.price
+                    }))
+                }
+            },
+            include: { items: true }
+        });
+        orderListeners.forEach(l => l.res.write(`event: newOrder\ndata: ${JSON.stringify(order)}\n\n`));
+        res.status(201).json(order);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to create order' });
+    }
+});
+
+app.get('/api/orders', async (req, res) => {
+    try {
+        const orders = await prisma.order.findMany({ include: { items: true }, orderBy: { createdAt: 'desc' } });
         res.json(orders);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch orders' });
@@ -171,40 +218,47 @@ app.get('/api/orders', async (req, res) => {
 });
 
 app.patch('/api/orders/:id', async (req, res) => {
-    const { id } = req.params;
     const { status } = req.body;
     try {
-        await prisma.order.update({
-            where: { id },
-            data: { status }
-        });
+        await prisma.order.update({ where: { id: req.params.id }, data: { status } });
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: 'Failed to update order' });
     }
 });
 
-// SSE Stream
 app.get('/api/orders/stream', (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders();
-
     const listener = { res };
     orderListeners.push(listener);
-
     req.on('close', () => {
-        const index = orderListeners.indexOf(listener);
-        if (index > -1) orderListeners.splice(index, 1);
+        const idx = orderListeners.indexOf(listener);
+        if (idx > -1) orderListeners.splice(idx, 1);
     });
 });
 
-// Export for Vercel or start locally
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => {
-        console.log(`🚀 Local Server running on port ${PORT}`);
-    });
-}
+// AI Chat
+app.post('/api/chat', async (req, res) => {
+    const { messages } = req.body;
+    try {
+        if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is missing');
+        const dishes = await prisma.dish.findMany({ where: { isAvailable: true } });
+        const menuContext = dishes.map(d => `- ${d.name} (${d.category}): ${d.description}. Цена: ${d.price} руб.`).join('\n');
+        const instruction = await prisma.aIInstruction.findFirst({ where: { isActive: true }, orderBy: { createdAt: 'desc' } });
+        const systemPrompt = instruction?.promptText || `Ты — ассистент ресторана. Меню:\n${menuContext}`;
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const result = await model.generateContent([systemPrompt, ...messages.map((m: any) => m.content)]);
+        res.json({ text: result.response.text() });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+});
 
+// Export for Railway/Vercel
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => console.log(`🚀 Server on port ${PORT}`));
+}
 export default app;
