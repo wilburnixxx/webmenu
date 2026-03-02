@@ -1,15 +1,23 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { menuService } from '../api';
 import {
     Plus, Trash2, BarChart3, Utensils, DollarSign, Package,
-    ChefHat, X, Settings, ArrowUp, ArrowDown, GripVertical
+    ChefHat, X, Settings, ArrowUp, ArrowDown, GripVertical, LogOut
 } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 
 const AdminDashboard = () => {
+    const navigate = useNavigate();
     const queryClient = useQueryClient();
+
+    const handleLogout = () => {
+        localStorage.removeItem('qr_token');
+        localStorage.removeItem('qr_role');
+        navigate('/login');
+    };
     const [editingDish, setEditingDish] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'dishes' | 'categories' | 'ai' | 'qr' | 'logs'>('dishes');
@@ -158,6 +166,20 @@ const AdminDashboard = () => {
                             <span style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-tertiary)', letterSpacing: '1px' }}>СИСТЕМА ACTIVE</span>
                         </div>
                     </div>
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button
+                        onClick={handleLogout}
+                        style={{
+                            background: 'none', border: '1px solid var(--border-color)',
+                            color: 'var(--error)', padding: '10px 16px', borderRadius: '12px',
+                            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+                            fontSize: '12px', fontWeight: '800'
+                        }}
+                    >
+                        <LogOut size={16} /> ВЫХОД
+                    </button>
                 </div>
 
                 <div style={{ display: 'flex', gap: '4px', background: 'var(--bg-secondary)', padding: '6px', borderRadius: '16px', overflowX: 'auto', maxWidth: '100%', scrollbarWidth: 'none' }}>

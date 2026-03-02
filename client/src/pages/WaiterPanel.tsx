@@ -1,7 +1,8 @@
 import { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { orderService, menuService } from '../api';
-import { CheckCircle, Clock, ChefHat, XCircle, Archive, Layout } from 'lucide-react';
+import { CheckCircle, Clock, ChefHat, XCircle, Archive, Layout, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const statusMap: Record<string, { label: string, color: string, icon: any }> = {
@@ -12,8 +13,15 @@ const statusMap: Record<string, { label: string, color: string, icon: any }> = {
 };
 
 const WaiterPanel = () => {
+    const navigate = useNavigate();
     const queryClient = useQueryClient();
     const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    const handleLogout = () => {
+        localStorage.removeItem('qr_token');
+        localStorage.removeItem('qr_role');
+        navigate('/login');
+    };
 
     const { data: allOrders, isLoading } = useQuery({
         queryKey: ['orders'],
@@ -79,7 +87,20 @@ const WaiterPanel = () => {
                         <p style={{ fontSize: '11px', fontWeight: '800', opacity: 0.5, letterSpacing: '1px', textTransform: 'uppercase' }}>АКТИВНЫХ ЗАКАЗОВ: {activeOrders?.length || 0}</p>
                     </div>
                 </div>
-                <div className="status-indicator" style={{ width: '10px', height: '10px', boxShadow: '0 0 10px var(--primary)' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div className="status-indicator" style={{ width: '10px', height: '10px', boxShadow: '0 0 10px var(--primary)' }} />
+                    <button
+                        onClick={handleLogout}
+                        style={{
+                            background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+                            color: 'var(--error)', padding: '12px', borderRadius: '14px',
+                            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px'
+                        }}
+                    >
+                        <LogOut size={18} />
+                        <span style={{ fontSize: '13px', fontWeight: '800' }}>ВЫХОД</span>
+                    </button>
+                </div>
             </header>
 
             {/* Main Order Grid */}

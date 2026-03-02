@@ -14,11 +14,15 @@ const ProtectedRoute = ({ children, role }: { children: React.ReactNode, role: '
   const userRole = localStorage.getItem('qr_role');
   const location = useLocation();
 
-  if (!token) {
+  // Жесткая проверка: нет токена или роль невалидна
+  if (!token || !userRole || (userRole !== 'ADMIN' && userRole !== 'WAITER')) {
+    console.log('🔒 Доступ запрещен: перенаправление на логин');
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
+  // Если нужна конкретная роль (например ADMIN), а пользователь WAITER
   if (role !== 'ANY' && userRole !== 'ADMIN' && userRole !== role) {
+    console.log(`🚫 Недостаточно прав для роли ${role}`);
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
