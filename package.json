@@ -1,9 +1,10 @@
 {
   "name": "webmenu-root",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "private": true,
   "scripts": {
-    "build": "npx prisma generate --schema=server/prisma/schema.prisma && npm install --prefix client && npm run build --prefix client",
+    "build": "npx prisma generate --schema=server/prisma/schema.prisma && npm install --prefix server && npm run build --prefix server && npm install --prefix client && npm run build --prefix client",
+    "start": "cd server && node dist/index.js",
     "deploy:server": "cd server && npm install && npm run build && npm start",
     "dev:server": "cd server && npm run dev",
     "dev:client": "cd client && npm run dev"
