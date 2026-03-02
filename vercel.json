@@ -1,14 +1,14 @@
 {
-  "version": 2,
-  "outputDirectory": "client/dist",
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/index.ts"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
+    "version": 2,
+    "outputDirectory": "client/dist",
+    "rewrites": [
+        {
+            "source": "/api/(.*)",
+            "destination": "/server/src/index.ts"
+        },
+        {
+            "source": "/((?!api/|assets/|favicon.ico|vite.svg).*)",
+            "destination": "/index.html"
+        }
+    ]
 }
