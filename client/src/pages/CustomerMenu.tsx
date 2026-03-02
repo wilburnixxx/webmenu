@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { menuService, orderService } from '../api';
+import { menuService, orderService, callService } from '../api';
 import DishCard from '../components/DishCard';
-import { ShoppingBag, Plus, Minus, Send, ChevronUp, X, ChefHat, User } from 'lucide-react';
+import { ShoppingBag, Plus, Minus, Send, ChevronUp, X, ChefHat, User, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 
@@ -15,9 +15,12 @@ const CustomerMenu = () => {
     const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
     const [tableNumber] = useState(() => {
         const params = new URLSearchParams(window.location.search);
-        return params.get('table') || '1';
+        const table = parseInt(params.get('table') || '1');
+        return (table >= 0 && table <= 100) ? String(table) : '1';
     });
     const [selectedDish, setSelectedDish] = useState<any>(null);
+    const [isCalling, setIsCalling] = useState(false);
+    const [callSuccess, setCallSuccess] = useState(false);
 
     const statusMap: Record<string, { label: string, color: string }> = {
         PENDING: { label: 'ОЖИДАНИЕ', color: '#8E8E93' },
@@ -68,6 +71,25 @@ const CustomerMenu = () => {
         },
         onError: () => alert('Ошибка при отправке заказа')
     });
+
+    const callMutation = useMutation({
+        mutationFn: () => callService.createCall(tableNumber),
+        onSuccess: () => {
+            setCallSuccess(true);
+            setIsCalling(false);
+            setTimeout(() => setCallSuccess(false), 5000);
+        },
+        onError: () => {
+            alert('Ошибка при вызове официанта');
+            setIsCalling(false);
+        }
+    });
+
+    const handleCallWaiter = () => {
+        if (isCalling) return;
+        setIsCalling(true);
+        callMutation.mutate();
+    };
 
     const categories = menuCategories?.map((c: any) => c.name) || [];
 
@@ -145,6 +167,33 @@ const CustomerMenu = () => {
     return (
         <div style={{ width: '100%', paddingBottom: '140px', minHeight: '100vh', position: 'relative' }}>
 
+            {/* Call Success Toast */}
+            <AnimatePresence>
+                {callSuccess && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        style={{
+                            position: 'fixed', bottom: '100px', left: '20px', right: '20px',
+                            zIndex: 2500, display: 'flex', justifyContent: 'center'
+                        }}
+                    >
+                        <div style={{
+                            background: '#1A1A1A', color: 'white', padding: '16px 24px',
+                            borderRadius: '20px', boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+                            display: 'flex', alignItems: 'center', gap: '12px',
+                            border: '1px solid rgba(255,255,255,0.1)'
+                        }}>
+                            <div style={{ padding: '8px', background: 'var(--primary)', borderRadius: '10px' }}>
+                                <Bell size={16} fill="white" />
+                            </div>
+                            <span style={{ fontSize: '14px', fontWeight: '700' }}>Официант скоро подойдет! 🧑‍🍳</span>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Award-Winning Header (Sticky) */}
             <header className="glass" style={{
                 position: 'sticky', top: 0, zIndex: 1000,
@@ -159,6 +208,20 @@ const CustomerMenu = () => {
                     LIQUID<span style={{ color: 'var(--primary)' }}>MENU</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button
+                        onClick={handleCallWaiter}
+                        disabled={isCalling}
+                        style={{
+                            background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+                            color: isCalling ? 'var(--text-tertiary)' : 'var(--primary)',
+                            padding: '8px 12px', borderRadius: '12px',
+                            display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <Bell size={18} fill={isCalling ? 'none' : 'currentColor'} style={{ opacity: isCalling ? 0.5 : 1 }} />
+                        <span style={{ fontSize: '10px', fontWeight: '900', letterSpacing: '0.5px' }}>ВЫЗОВ</span>
+                    </button>
                     <div className="status-indicator" style={{ marginRight: '8px' }} />
                     <button
                         onClick={() => setIsCartOpen(true)}
@@ -562,6 +625,22 @@ const CustomerMenu = () => {
                     </div>
                 )}
             </AnimatePresence>
+
+            {/* Employee Access Footer Pin */}
+            <footer style={{ marginTop: '80px', padding: '40px 20px', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', opacity: 0.6 }}>
+                <p style={{ fontSize: '12px', fontWeight: '800', letterSpacing: '2px', color: 'var(--text-tertiary)', margin: 0 }}>LIQUID SERVICE V3.0</p>
+                <button
+                    onClick={() => navigate('/login')}
+                    style={{
+                        background: 'none', border: '1px solid var(--border-color)',
+                        color: 'var(--text-primary)', padding: '12px 24px', borderRadius: '14px',
+                        fontSize: '11px', fontWeight: '900', letterSpacing: '1px',
+                        cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px'
+                    }}
+                >
+                    <User size={14} /> ЛОГИН ДЛЯ ПЕРСОНАЛА
+                </button>
+            </footer>
         </div>
     );
 };

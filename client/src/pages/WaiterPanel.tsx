@@ -1,8 +1,7 @@
 import { useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { orderService, menuService } from '../api';
-import { CheckCircle, Clock, ChefHat, XCircle, Archive, Layout, LogOut } from 'lucide-react';
+import { orderService, menuService, callService } from '../api';
+import { CheckCircle, Clock, ChefHat, XCircle, Archive, Layout, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const statusMap: Record<string, { label: string, color: string, icon: any }> = {
@@ -13,15 +12,9 @@ const statusMap: Record<string, { label: string, color: string, icon: any }> = {
 };
 
 const WaiterPanel = () => {
-    const navigate = useNavigate();
     const queryClient = useQueryClient();
     const audioRef = useRef<HTMLAudioElement | null>(null);
-
-    const handleLogout = () => {
-        localStorage.removeItem('qr_token');
-        localStorage.removeItem('qr_role');
-        navigate('/login');
-    };
+    const lastCallCount = useRef(0);
 
     const { data: allOrders, isLoading } = useQuery({
         queryKey: ['orders'],
@@ -34,6 +27,26 @@ const WaiterPanel = () => {
         queryFn: menuService.getMenu
     });
 
+    const { data: activeCalls } = useQuery({
+        queryKey: ['calls'],
+        queryFn: callService.getCalls,
+        refetchInterval: 5000,
+        //@ts-ignore
+        onSuccess: (data: any[]) => {
+            if (data.length > lastCallCount.current) {
+                audioRef.current?.play().catch(() => { });
+            }
+            lastCallCount.current = data.length;
+        }
+    });
+
+    // Дополнительный эффект для звука (т.к. React Query v5+ изменил onSuccess)
+    const callsLength = (activeCalls as any[])?.length || 0;
+    if (callsLength > lastCallCount.current) {
+        audioRef.current?.play().catch(() => { });
+        lastCallCount.current = callsLength;
+    }
+
     const activeOrders = (allOrders as any[])?.filter((o: any) => o.status !== 'ARCHIVED');
 
     const statusMutation = useMutation({
@@ -41,6 +54,13 @@ const WaiterPanel = () => {
             orderService.updateOrderStatus(orderId, status),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['orders'] });
+        }
+    });
+
+    const callCompleteMutation = useMutation({
+        mutationFn: (id: string) => callService.completeCall(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['calls'] });
         }
     });
 
@@ -89,19 +109,48 @@ const WaiterPanel = () => {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <div className="status-indicator" style={{ width: '10px', height: '10px', boxShadow: '0 0 10px var(--primary)' }} />
-                    <button
-                        onClick={handleLogout}
-                        style={{
-                            background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
-                            color: 'var(--error)', padding: '12px', borderRadius: '14px',
-                            cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px'
-                        }}
-                    >
-                        <LogOut size={18} />
-                        <span style={{ fontSize: '13px', fontWeight: '800' }}>ВЫХОД</span>
-                    </button>
                 </div>
             </header>
+
+            {/* Active Calls Section */}
+            {(activeCalls as any[]) && (activeCalls as any[]).length > 0 && (
+                <div style={{ marginBottom: '40px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                        <Bell size={20} color="var(--primary)" fill="var(--primary)" />
+                        <h2 style={{ fontSize: '18px', fontWeight: '900', margin: 0 }}>ВЫЗОВЫ ({(activeCalls as any[]).length})</h2>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+                        <AnimatePresence>
+                            {(activeCalls as any[]).map((call: any) => (
+                                <motion.div
+                                    key={call.id}
+                                    initial={{ scale: 0.8, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    exit={{ scale: 0.8, opacity: 0 }}
+                                    style={{
+                                        background: '#1A1A1A', color: 'white', padding: '16px 24px',
+                                        borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '20px',
+                                        boxShadow: '0 8px 25px rgba(255, 107, 53, 0.2)',
+                                        border: '1px solid rgba(255,107,53,0.3)'
+                                    }}
+                                >
+                                    <div style={{ fontSize: '20px', fontWeight: '950' }}>СТОЛ {call.tableNumber}</div>
+                                    <button
+                                        onClick={() => callCompleteMutation.mutate(call.id)}
+                                        style={{
+                                            background: 'var(--primary)', border: 'none', color: 'white',
+                                            padding: '8px 16px', borderRadius: '12px', fontSize: '11px',
+                                            fontWeight: '900', cursor: 'pointer'
+                                        }}
+                                    >
+                                        ПРИНЯТЬ
+                                    </button>
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+                    </div>
+                </div>
+            )}
 
             {/* Main Order Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 'clamp(16px, 3vw, 32px)' }}>
@@ -198,16 +247,18 @@ const WaiterPanel = () => {
                 </AnimatePresence>
             </div>
 
-            {activeOrders?.length === 0 && (
-                <div style={{ textAlign: 'center', padding: '160px 40px', color: 'var(--text-tertiary)' }}>
-                    <div className="card" style={{ width: '140px', height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 40px', borderRadius: '48px', opacity: 0.5 }}>
-                        <Clock size={48} />
+            {
+                activeOrders?.length === 0 && (
+                    <div style={{ textAlign: 'center', padding: '160px 40px', color: 'var(--text-tertiary)' }}>
+                        <div className="card" style={{ width: '140px', height: '140px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 40px', borderRadius: '48px', opacity: 0.5 }}>
+                            <Clock size={48} />
+                        </div>
+                        <h3 style={{ fontSize: '32px', fontWeight: '950', color: 'var(--text-primary)', marginBottom: '12px', letterSpacing: '-1px' }}>Затишье.</h3>
+                        <p style={{ fontWeight: '600' }}>Все гости довольны. Наслаждайтесь моментом.</p>
                     </div>
-                    <h3 style={{ fontSize: '32px', fontWeight: '950', color: 'var(--text-primary)', marginBottom: '12px', letterSpacing: '-1px' }}>Затишье.</h3>
-                    <p style={{ fontWeight: '600' }}>Все гости довольны. Наслаждайтесь моментом.</p>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 

@@ -12,6 +12,31 @@ const api = axios.create({
     headers: { 'Content-Type': 'application/json' }
 });
 
+// Добавляем токен ко всем запросам
+api.interceptors.request.use(config => {
+    const token = localStorage.getItem('qr_token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+});
+
+// Обработка ошибок авторизации (401)
+api.interceptors.response.use(
+    response => response,
+    error => {
+        if (error.response?.status === 401) {
+            console.warn('🔑 Сессия истекла или невалидна. Выход...');
+            localStorage.removeItem('qr_token');
+            localStorage.removeItem('qr_role');
+            if (!window.location.pathname.includes('/login')) {
+                window.location.href = '/login';
+            }
+        }
+        return Promise.reject(error);
+    }
+);
+
 // 2. УНИВЕРСАЛЬНЫЙ СЕРВИС (Прямое управление)
 export const menuService = {
     // Категории
@@ -95,6 +120,12 @@ export const orderService = {
     createOrder: async (d: any) => (await api.post('/orders', d)).data,
     updateOrderStatus: async (id: string, s: string) => (await api.patch(`/orders/${id}`, { status: s })).data,
     getOrder: async (id: string) => (await api.get(`/orders/${id}`)).data
+};
+
+export const callService = {
+    createCall: async (tableNumber: string) => (await api.post('/calls', { tableNumber })).data,
+    getCalls: async () => (await api.get('/calls')).data || [],
+    completeCall: async (id: string) => (await api.patch(`/calls/${id}`, { status: 'DONE' })).data
 };
 
 export const authService = {
