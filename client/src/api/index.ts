@@ -97,4 +97,8 @@ export const orderService = {
     getOrder: async (id: string) => (await api.get(`/orders/${id}`)).data
 };
 
+export const authService = {
+    login: async (credentials: any) => (await api.post('/auth/login', credentials)).data
+};
+
 export default api;

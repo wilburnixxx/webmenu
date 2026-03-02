@@ -45,6 +45,24 @@ const safeQuery = async (res, fn) => {
     }
 };
 
+// --- AUTH ---
+app.post(['/auth/login', '/api/auth/login'], async (req, res) => {
+    const { login, password } = req.body;
+    const ADMIN_LOGIN = process.env.ADMIN_LOGIN || 'admin';
+    const ADMIN_PASS = process.env.ADMIN_PASS || 'admin777';
+    const WAITER_LOGIN = process.env.WAITER_LOGIN || 'waiter';
+    const WAITER_PASS = process.env.WAITER_PASS || 'waiter777';
+
+    if (login === ADMIN_LOGIN && password === ADMIN_PASS) {
+        return res.json({ role: 'ADMIN', token: 'fake-jwt-admin' });
+    }
+    if (login === WAITER_LOGIN && password === WAITER_PASS) {
+        return res.json({ role: 'WAITER', token: 'fake-jwt-waiter' });
+    }
+
+    res.status(401).json({ error: 'Неверный логин или пароль' });
+});
+
 // --- AI ИНСТРУКЦИИ ---
 app.get(['/ai/instructions', '/api/ai/instructions'], async (req, res) => {
     try {
