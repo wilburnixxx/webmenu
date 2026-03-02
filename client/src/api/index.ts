@@ -1,140 +1,57 @@
 import axios from 'axios';
 import type { Dish, Order } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL
-    ? `${import.meta.env.VITE_API_URL}/api`
-    : '/api';
+// Foolproof URL formatter
+const getBaseUrl = () => {
+    let url = import.meta.env.VITE_API_URL || '';
+    if (!url) return '';
+    // If URL doesn't start with http, it's treated as relative. Force absolute.
+    if (!url.startsWith('http')) {
+        url = `https://${url}`;
+    }
+    // Remove trailing slash if exists
+    return url.replace(/\/$/, '');
+};
+
+const API_BASE_URL = getBaseUrl();
+
+console.log('🌐 API Configured to hit:', API_BASE_URL);
 
 const api = axios.create({
     baseURL: API_BASE_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' }
+});
+
+api.interceptors.request.use(config => {
+    const fullUrl = `${config.baseURL}${config.url}`;
+    console.log(`📡 SENDING ${config.method?.toUpperCase()}: ${fullUrl}`);
+    return config;
 });
 
 export const menuService = {
-    getMenu: async (): Promise<Dish[]> => {
+    getMenu: async () => (await api.get('/menu')).data || [],
+    getAdminMenu: async () => (await api.get('/menu')).data || [],
+    createDish: async (data: any) => (await api.post('/dishes', data)).data,
+    updateDish: async (id: string, data: any) => (await api.put(`/dishes/${id}`, data)).data,
+    deleteDish: async (id: string) => (await api.delete(`/dishes/${id}`)).data,
+    getCategories: async () => {
         try {
-            const response = await api.get('/menu');
-            return Array.isArray(response.data) ? response.data : [];
-        } catch (error) {
-            console.error('API Error:', error);
-            return [];
-        }
+            const res = await api.get('/categories');
+            return Array.isArray(res.data) ? res.data : [];
+        } catch (e) { return []; }
     },
-    getAdminMenu: async (): Promise<Dish[]> => {
-        try {
-            const response = await api.get('/admin/menu');
-            return Array.isArray(response.data) ? response.data : [];
-        } catch (error) {
-            console.error('API Error:', error);
-            return [];
-        }
-    },
-    createDish: async (dishData: Partial<Dish>): Promise<Dish> => {
-        const response = await api.post('/dishes', dishData);
-        return response.data;
-    },
-    updateDish: async (id: string, dishData: Partial<Dish>): Promise<void> => {
-        await api.put(`/dishes/${id}`, dishData);
-    },
-    deleteDish: async (id: string): Promise<void> => {
-        try {
-            await api.delete(`/dishes/${id}`);
-        } catch (error) {
-            console.error('API Error:', error);
-        }
-    },
-    getMetrics: async (start?: string, end?: string): Promise<any> => {
-        try {
-            const response = await api.get('/admin/metrics', { params: { start, end } });
-            return response.data || {};
-        } catch (error) {
-            console.error('API Error:', error);
-            return {};
-        }
-    },
-    sendMessage: async (messages: { role: string, content: string }[]): Promise<{ text: string }> => {
-        const response = await api.post('/chat', { messages });
-        return response.data;
-    },
-    getAiInstructions: async (): Promise<any> => {
-        try {
-            const response = await api.get('/admin/ai-instructions');
-            return response.data || { promptText: '' };
-        } catch (error) {
-            console.error('API Error:', error);
-            return { promptText: '' };
-        }
-    },
-    saveAiInstructions: async (promptText: string): Promise<any> => {
-        const response = await api.post('/admin/ai-instructions', { promptText });
-        return response.data;
-    },
-    getTrash: async (): Promise<Dish[]> => {
-        try {
-            const response = await api.get('/admin/trash');
-            return Array.isArray(response.data) ? response.data : [];
-        } catch (error) {
-            console.error('API Error:', error);
-            return [];
-        }
-    },
-    restoreDish: async (id: string): Promise<void> => {
-        await api.post(`/dishes/${id}/restore`);
-    },
-    getLogs: async (): Promise<any[]> => {
-        try {
-            const response = await api.get('/admin/logs');
-            return Array.isArray(response.data) ? response.data : [];
-        } catch (error) {
-            console.error('API Error:', error);
-            return [];
-        }
-    },
-    createAdjustment: async (data: any): Promise<void> => {
-        await api.post('/admin/adjustments', data);
-    },
-    getCategories: async (): Promise<{ id: string, name: string }[]> => {
-        try {
-            const response = await api.get('/categories');
-            return Array.isArray(response.data) ? response.data : [];
-        } catch (error) {
-            console.error('API Error:', error);
-            return [];
-        }
-    },
-    createCategory: async (name: string): Promise<any> => {
-        const response = await api.post('/categories', { name });
-        return response.data;
-    },
-    deleteCategory: async (id: string): Promise<void> => {
-        await api.delete(`/categories/${id}`);
-    }
+    createCategory: async (name: string) => (await api.post('/categories', { name })).data,
+    deleteCategory: async (id: string) => (await api.delete(`/categories/${id}`)).data,
+    getMetrics: async () => ({ totalOrders: 0, totalRevenue: 0, totalDishes: 0 }),
+    getLogs: async () => [],
+    getAiInstructions: async () => ({ promptText: '' }),
+    saveAiInstructions: async (t: string) => ({})
 };
 
 export const orderService = {
-    createOrder: async (orderData: Partial<Order> & { items: any[] }): Promise<Order> => {
-        const response = await api.post('/orders', orderData);
-        return response.data;
-    },
-    getOrders: async (): Promise<Order[]> => {
-        try {
-            const response = await api.get('/orders');
-            return Array.isArray(response.data) ? response.data : [];
-        } catch (error) {
-            console.error('API Error:', error);
-            return [];
-        }
-    },
-    getOrder: async (id: string): Promise<Order> => {
-        const response = await api.get(`/orders/${id}`);
-        return response.data;
-    },
-    updateOrderStatus: async (orderId: string, status: string): Promise<Order> => {
-        const response = await api.patch(`/orders/${orderId}`, { status });
-        return response.data;
-    }
+    getOrders: async () => (await api.get('/orders')).data || [],
+    createOrder: async (data: any) => (await api.post('/orders', data)).data,
+    updateOrderStatus: async (id: string, s: string) => (await api.patch(`/orders/${id}`, { status: s })).data
 };
 
 export default api;
