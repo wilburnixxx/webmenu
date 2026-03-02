@@ -21,7 +21,7 @@ async function main() {
                 price: 850,
                 category: 'Закуски',
                 imageUrl: 'https://images.unsplash.com/photo-1546039907-7fa05f864c02?auto=format&fit=crop&q=80&w=800',
-                allergens: JSON.stringify(['Рыба']),
+                allergens: ['Рыба'],
             },
         }),
         prisma.dish.create({
@@ -31,7 +31,7 @@ async function main() {
                 price: 550,
                 category: 'Супы',
                 imageUrl: 'https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&q=80&w=800',
-                allergens: JSON.stringify(['Лактоза', 'Глютен']),
+                allergens: ['Лактоза', 'Глютен'],
             },
         }),
         prisma.dish.create({
@@ -41,7 +41,7 @@ async function main() {
                 price: 2400,
                 category: 'Горячее',
                 imageUrl: 'https://images.unsplash.com/photo-1546241072-48010ad2882c?auto=format&fit=crop&q=80&w=800',
-                allergens: JSON.stringify([]),
+                allergens: [],
             },
         }),
         prisma.dish.create({
@@ -51,7 +51,7 @@ async function main() {
                 price: 720,
                 category: 'Горячее',
                 imageUrl: 'https://images.unsplash.com/photo-1612874742237-6526221588e3?auto=format&fit=crop&q=80&w=800',
-                allergens: JSON.stringify(['Глютен', 'Лактоза', 'Яйцо']),
+                allergens: ['Глютен', 'Лактоза', 'Яйцо'],
             },
         }),
         prisma.dish.create({
@@ -61,7 +61,7 @@ async function main() {
                 price: 450,
                 category: 'Десерты',
                 imageUrl: 'https://images.unsplash.com/photo-1533134242443-d4fd215305ad?auto=format&fit=crop&q=80&w=800',
-                allergens: JSON.stringify(['Лактоза', 'Глютен']),
+                allergens: ['Лактоза', 'Глютен'],
             },
         }),
     ])
