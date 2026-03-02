@@ -15,24 +15,28 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [cart, setCart] = useState<MenuItem[]>([]);
 
     const addToCart = (dish: Dish) => {
-        console.log('🛒 Добавляем в корзину:', dish.name);
+        const dishId = String(dish.id);
+        console.log('🛒 Добавляем в корзину:', dish.name, 'ID:', dishId);
         setCart(prev => {
-            const existing = prev.find(item => item.dish.id === dish.id);
+            const existing = prev.find(item => String(item.dish.id) === dishId);
             if (existing) {
+                console.log('✨ Увеличиваем количество для:', dish.name);
                 return prev.map(item =>
-                    item.dish.id === dish.id
+                    String(item.dish.id) === dishId
                         ? { ...item, quantity: item.quantity + 1 }
                         : item
                 );
             }
+            console.log('🆕 Новый товар в корзине:', dish.name);
             return [...prev, { dish, quantity: 1 }];
         });
     };
 
     const removeFromCart = (dishId: string) => {
+        const idStr = String(dishId);
         setCart(prev =>
             prev.map(item =>
-                item.dish.id === dishId
+                String(item.dish.id) === idStr
                     ? { ...item, quantity: Math.max(0, item.quantity - 1) }
                     : item
             ).filter(item => item.quantity > 0)
