@@ -7,6 +7,9 @@
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },
+  "scripts": {
+    "build": "npx prisma generate --schema=server/prisma/schema.prisma && cd client && npm install && npm run build"
+  },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "better-sqlite3": "^12.6.2"

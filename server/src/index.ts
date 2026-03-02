@@ -60,24 +60,21 @@ app.post('/api/orders', async (req, res) => {
     const { tableNumber, items, totalPrice, comments } = req.body;
 
     try {
-        const order = await prisma.$transaction(async (tx) => {
-            const newOrder = await tx.order.create({
-                data: {
-                    tableNumber,
-                    totalPrice,
-                    comments,
-                    status: 'ACCEPTED',
-                    items: {
-                        create: items.map((item: any) => ({
-                            dishId: item.dishId,
-                            quantity: item.quantity,
-                            price: item.price
-                        }))
-                    }
-                },
-                include: { items: true }
-            });
-            return newOrder;
+        const order = await prisma.order.create({
+            data: {
+                tableNumber,
+                totalPrice,
+                comments,
+                status: 'ACCEPTED',
+                items: {
+                    create: items.map((item: any) => ({
+                        dishId: item.dishId,
+                        quantity: item.quantity,
+                        price: item.price
+                    }))
+                }
+            },
+            include: { items: true }
         });
 
         // Notify SSE listeners
