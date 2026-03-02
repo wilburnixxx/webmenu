@@ -79,6 +79,7 @@ model Metric {
 model Category {
   id    String @id @default(uuid())
   name  String @unique
+  order Int    @default(0)
 }
 model ActionLog {
   id        String   @id @default(uuid())

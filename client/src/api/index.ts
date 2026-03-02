@@ -25,6 +25,7 @@ export const menuService = {
         }
     },
     createCategory: async (name: string) => (await api.post('/categories', { name })).data,
+    updateCategoryOrder: async (id: string, order: number) => (await api.patch(`/categories/${id}`, { order })).data,
     deleteCategory: async (id: string) => (await api.delete(`/categories/${id}`)),
 
     // Блюда
@@ -68,8 +69,22 @@ export const menuService = {
             return [];
         }
     },
-    getAiInstructions: async () => ({ promptText: '' }),
-    saveAiInstructions: async (t: string) => ({}),
+    getAiInstructions: async () => {
+        try {
+            return (await api.get('/ai/instructions')).data;
+        } catch (e: any) {
+            console.error('Ошибка при получении инструкций:', e.message);
+            return { promptText: '' };
+        }
+    },
+    saveAiInstructions: async (promptText: string) => {
+        try {
+            return (await api.post('/ai/instructions', { promptText })).data;
+        } catch (e: any) {
+            console.error('Ошибка при сохранении инструкций:', e.message);
+            throw e;
+        }
+    },
     createAdjustment: async (data: any) => (await api.post('/metrics/adjust', data)).data,
     sendMessage: async (messages: any[]) => (await api.post('/ai/chat', { messages })).data
 };

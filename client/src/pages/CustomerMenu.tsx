@@ -22,10 +22,16 @@ const CustomerMenu = () => {
     };
 
     const [activeOrderId, setActiveOrderId] = useState<string | null>(localStorage.getItem('activeOrderId'));
+    const [orderComment, setOrderComment] = useState('');
 
     const { data: dishes, isLoading } = useQuery({
         queryKey: ['menu'],
         queryFn: menuService.getMenu
+    });
+
+    const { data: menuCategories } = useQuery({
+        queryKey: ['categories'],
+        queryFn: menuService.getCategories
     });
 
     const { data: activeOrder } = useQuery({
@@ -57,7 +63,7 @@ const CustomerMenu = () => {
         onError: () => alert('Ошибка при отправке заказа')
     });
 
-    const categories = Array.from(new Set((dishes as any[])?.map((d: any) => d.category).filter(Boolean) || []));
+    const categories = menuCategories?.map((c: any) => c.name) || [];
 
     const scrollToCategory = (catName: string) => {
         const element = document.getElementById(`category-${catName}`);
@@ -75,7 +81,7 @@ const CustomerMenu = () => {
             tableNumber,
             totalPrice: totalPrice,
             items: (cart as any[]).map((item: any) => ({ dishId: item.dish.id, quantity: item.quantity, price: item.dish.price })),
-            comments: ""
+            comments: orderComment
         });
     };
 
@@ -414,6 +420,16 @@ const CustomerMenu = () => {
                                             </div>
                                         </div>
                                     ))}
+                                </div>
+
+                                <div style={{ marginTop: '24px' }}>
+                                    <p style={{ fontSize: '11px', fontWeight: '900', color: 'var(--text-tertiary)', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '1px' }}>КОММЕНТАРИЙ К ЗАКАЗУ</p>
+                                    <textarea
+                                        value={orderComment}
+                                        onChange={e => setOrderComment(e.target.value)}
+                                        placeholder="Напр. без лука, столовые приборы на 3-х..."
+                                        style={{ width: '100%', height: '80px', padding: '16px', borderRadius: '18px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', fontSize: '14px', resize: 'none', color: 'var(--text-primary)', fontWeight: '600' }}
+                                    />
                                 </div>
 
                                 <div style={{ marginTop: '32px', paddingTop: '32px', borderTop: '2px dashed var(--border-color)' }}>

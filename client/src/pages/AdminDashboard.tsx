@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { menuService } from '../api';
 import {
     Plus, Trash2, BarChart3, Utensils, DollarSign, Package,
-    ChefHat, X, Settings
+    ChefHat, X, Settings, ArrowUp, ArrowDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
@@ -97,6 +97,11 @@ const AdminDashboard = () => {
         onError: (err: any) => {
             alert(err.response?.data?.error || 'Ошибка при удалении категории');
         }
+    });
+
+    const reorderCatMutation = useMutation({
+        mutationFn: ({ id, order }: { id: string, order: number }) => menuService.updateCategoryOrder(id, order),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] })
     });
 
     if (menuLoading) return (
@@ -241,10 +246,16 @@ const AdminDashboard = () => {
                                     if (input.value) { createCatMutation.mutate(input.value); input.value = ''; }
                                 }} style={{ padding: '0 32px' }}>Добавить</button>
                             </div>
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
-                                {categories?.map((cat: any) => (
-                                    <div key={cat.id} style={{ padding: '20px 24px', background: 'var(--bg-secondary)', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--border-color)', transition: 'all 200ms cubic-bezier(0.4, 0, 0.2, 1)' }}>
-                                        <span style={{ fontWeight: '800', color: 'var(--text-primary)' }}>{cat.name}</span>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                {categories?.sort((a: any, b: any) => a.order - b.order).map((cat: any) => (
+                                    <div key={cat.id} style={{ padding: '16px 24px', background: 'var(--bg-secondary)', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--border-color)' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                <button onClick={() => reorderCatMutation.mutate({ id: cat.id, order: cat.order - 1.5 })} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: '2px' }}><ArrowUp size={16} /></button>
+                                                <button onClick={() => reorderCatMutation.mutate({ id: cat.id, order: cat.order + 1.5 })} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: '2px' }}><ArrowDown size={16} /></button>
+                                            </div>
+                                            <span style={{ fontWeight: '800', color: 'var(--text-primary)', fontSize: '16px' }}>{cat.name}</span>
+                                        </div>
                                         <button onClick={() => deleteCatMutation.mutate(cat.id)} style={{ color: 'var(--error)', border: 'none', background: 'none', cursor: 'pointer', padding: '8px' }}><Trash2 size={18} /></button>
                                     </div>
                                 ))}
