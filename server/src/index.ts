@@ -5,62 +5,70 @@ dotenv.config();
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const prisma = new PrismaClient();
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
-app.use(cors());
+// MANUAL CORS (Force everything)
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS,PATCH');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Content-Length, X-Requested-With');
+    if (req.method === 'OPTIONS') {
+        res.sendStatus(200);
+    } else {
+        next();
+    }
+});
+
 app.use(express.json());
 
-// Logger
-app.use((req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-    next();
-});
-
 // Root check
-app.get('/', (req, res) => res.send('Server is LIVE v1.0.7'));
+app.get('/', (req, res) => res.send('<h1>QR Menu Server v1.0.8</h1><p>Status: OK</p>'));
 
-// ALL ROUTES WITHOUT /API PREFIX FOR SIMPLICITY
-app.get('/categories', async (req, res) => {
-    try {
-        const categories = await (prisma as any).category.findMany();
-        res.json(categories);
-    } catch (e) { res.status(500).json([]); }
-});
+// SUPPORT BOTH /path AND /api/path (Compatibility mode)
+const routes = ['/categories', '/menu', '/dishes', '/orders', '/admin/metrics', '/admin/ai-instructions', '/chat'];
 
-app.post('/categories', async (req, res) => {
+// Category logic
+const handleCategories = async (req, res) => {
     try {
-        const item = await (prisma as any).category.create({ data: { name: req.body.name } });
-        res.status(201).json(item);
+        if (req.method === 'GET') {
+            const data = await (prisma as any).category.findMany();
+            res.json(data);
+        } else if (req.method === 'POST') {
+            const item = await (prisma as any).category.create({ data: { name: req.body.name } });
+            res.status(201).json(item);
+        }
     } catch (e) { res.status(500).json({ error: e.message }); }
-});
+};
 
-app.get('/menu', async (req, res) => {
+app.get('/categories', handleCategories);
+app.get('/api/categories', handleCategories);
+app.post('/categories', handleCategories);
+app.post('/api/categories', handleCategories);
+
+// Menu logic
+const handleMenu = async (req, res) => {
     try {
-        const items = await prisma.dish.findMany();
-        res.json(items);
-    } catch (e) { res.status(500).json([]); }
-});
+        const data = await prisma.dish.findMany();
+        res.json(data);
+    } catch (e) { res.json([]); }
+};
+app.get('/menu', handleMenu);
+app.get('/api/menu', handleMenu);
+app.get('/api/admin/menu', handleMenu);
 
-app.post('/dishes', async (req, res) => {
+// Dish creation
+app.post(['/dishes', '/api/dishes'], async (req, res) => {
     try {
         const item = await prisma.dish.create({ data: { ...req.body, price: Number(req.body.price) } });
         res.status(201).json(item);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-// Global Error Handler
-app.use((err, req, res, next) => {
-    console.error('SERVER ERROR:', err);
-    res.status(500).send('Something broke!');
-});
-
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`🚀 CORS-Enabled Server running on port ${PORT}`);
 });
 
 export default app;
