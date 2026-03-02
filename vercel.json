@@ -3,13 +3,10 @@
     "outputDirectory": "client/dist",
     "cleanUrls": true,
     "trailingSlash": false,
-    "rules": [
+    "rewrites": [
         {
-            "handle": "filesystem"
-        },
-        {
-            "src": "/.*",
-            "dest": "/index.html"
+            "source": "/(.*)",
+            "destination": "/index.html"
         }
     ]
 }
