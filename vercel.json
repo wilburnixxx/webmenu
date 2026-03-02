@@ -3,10 +3,13 @@
     "outputDirectory": "client/dist",
     "cleanUrls": true,
     "trailingSlash": false,
-    "rewrites": [
+    "rules": [
         {
-            "source": "/((?!assets/|favicon.ico|vite.svg).*)",
-            "destination": "/index.html"
+            "handle": "filesystem"
+        },
+        {
+            "src": "/.*",
+            "dest": "/index.html"
         }
     ]
 }

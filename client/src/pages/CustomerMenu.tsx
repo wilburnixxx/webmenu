@@ -50,7 +50,7 @@ const CustomerMenu = () => {
         onError: () => alert('Ошибка при отправке заказа')
     });
 
-    const categories = [...new Set(dishes?.map(d => d.category) || [])];
+    const categories = [...new Set(dishes?.map(d => d.category).filter(Boolean) || [])];
 
     const scrollToCategory = (catName: string) => {
         const element = document.getElementById(`category-${catName}`);
