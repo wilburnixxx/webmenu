@@ -28,17 +28,23 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
-// Basic Health Check
+// Basic Health Check (Updated to verify deployment)
 app.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+    res.json({
+        status: 'ok',
+        version: '1.0.4',
+        db_status: process.env.DATABASE_URL ? 'configured' : 'missing',
+        time: new Date().toISOString()
+    });
 });
 
 // Category Routes
 app.get('/api/categories', async (req, res) => {
     try {
-        const categories = await prisma.category.findMany();
+        const categories = await (prisma as any).category.findMany();
         res.json(categories);
     } catch (error) {
+        console.error('Fetch categories error:', error);
         res.status(500).json({ error: 'Failed to fetch categories' });
     }
 });
@@ -46,16 +52,17 @@ app.get('/api/categories', async (req, res) => {
 app.post('/api/categories', async (req, res) => {
     const { name } = req.body;
     try {
-        const category = await prisma.category.create({ data: { name } });
+        const category = await (prisma as any).category.create({ data: { name } });
         res.status(201).json(category);
     } catch (error) {
+        console.error('Create category error:', error);
         res.status(500).json({ error: 'Failed to create category' });
     }
 });
 
 app.delete('/api/categories/:id', async (req, res) => {
     try {
-        await prisma.category.delete({ where: { id: req.params.id } });
+        await (prisma as any).category.delete({ where: { id: req.params.id } });
         res.json({ success: true });
     } catch (error) {
         res.status(500).json({ error: 'Failed to delete category' });
@@ -88,12 +95,20 @@ app.get('/api/admin/menu', async (req, res) => {
 app.post('/api/dishes', async (req, res) => {
     const { name, description, price, imageUrl, category, allergens } = req.body;
     try {
+        console.log('Attempting to create dish:', { name, category });
         const dish = await prisma.dish.create({
-            data: { name, description, price, imageUrl, category, allergens: allergens || [] }
+            data: {
+                name,
+                description,
+                price: Number(price),
+                imageUrl,
+                category,
+                allergens: allergens || []
+            }
         });
         res.status(201).json(dish);
     } catch (error) {
-        console.error('Create dish error:', error);
+        console.error('Create dish error details:', error);
         res.status(500).json({ error: 'Failed to create dish' });
     }
 });
@@ -104,7 +119,15 @@ app.put('/api/dishes/:id', async (req, res) => {
     try {
         await prisma.dish.update({
             where: { id },
-            data: { name, description, price, imageUrl, category, isAvailable, allergens: allergens || [] }
+            data: {
+                name,
+                description,
+                price: Number(price),
+                imageUrl,
+                category,
+                isAvailable,
+                allergens: allergens || []
+            }
         });
         res.json({ success: true });
     } catch (error) {
@@ -126,15 +149,15 @@ app.delete('/api/dishes/:id', async (req, res) => {
 app.get('/api/admin/metrics', async (req, res) => {
     try {
         const totalOrders = await prisma.order.count();
-        const dishes = await prisma.dish.findMany();
+        const dishesCount = await prisma.dish.count();
         const orders = await prisma.order.findMany();
         const totalRevenue = orders.reduce((sum, o) => sum + o.totalPrice, 0);
 
         res.json({
             totalOrders,
             totalRevenue,
-            totalDishes: dishes.length,
-            topDishes: dishes.slice(0, 3) // Placeholder
+            totalDishes: dishesCount,
+            topDishes: []
         });
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch metrics' });
@@ -143,8 +166,8 @@ app.get('/api/admin/metrics', async (req, res) => {
 
 app.get('/api/admin/logs', async (req, res) => {
     try {
-        const metrics = await prisma.metric.findMany({ orderBy: { timestamp: 'desc' }, take: 50 });
-        res.json(metrics.map(m => ({
+        const logs = await (prisma as any).metric.findMany({ orderBy: { timestamp: 'desc' }, take: 50 });
+        res.json(logs.map((m: any) => ({
             id: m.id,
             createdAt: m.timestamp,
             action: m.eventType,
@@ -158,7 +181,7 @@ app.get('/api/admin/logs', async (req, res) => {
 
 app.get('/api/admin/ai-instructions', async (req, res) => {
     try {
-        const instruction = await prisma.aIInstruction.findFirst({
+        const instruction = await (prisma as any).aIInstruction.findFirst({
             where: { isActive: true },
             orderBy: { createdAt: 'desc' }
         });
@@ -171,7 +194,7 @@ app.get('/api/admin/ai-instructions', async (req, res) => {
 app.post('/api/admin/ai-instructions', async (req, res) => {
     const { promptText } = req.body;
     try {
-        const instruction = await prisma.aIInstruction.create({
+        const instruction = await (prisma as any).aIInstruction.create({
             data: { promptText, isActive: true }
         });
         res.status(201).json(instruction);
@@ -203,7 +226,7 @@ app.post('/api/orders', async (req, res) => {
         orderListeners.forEach(l => l.res.write(`event: newOrder\ndata: ${JSON.stringify(order)}\n\n`));
         res.status(201).json(order);
     } catch (error) {
-        console.error(error);
+        console.error('Order creation error:', error);
         res.status(500).json({ error: 'Failed to create order' });
     }
 });
@@ -247,7 +270,7 @@ app.post('/api/chat', async (req, res) => {
         if (!process.env.GEMINI_API_KEY) throw new Error('GEMINI_API_KEY is missing');
         const dishes = await prisma.dish.findMany({ where: { isAvailable: true } });
         const menuContext = dishes.map(d => `- ${d.name} (${d.category}): ${d.description}. Цена: ${d.price} руб.`).join('\n');
-        const instruction = await prisma.aIInstruction.findFirst({ where: { isActive: true }, orderBy: { createdAt: 'desc' } });
+        const instruction = await (prisma as any).aIInstruction.findFirst({ where: { isActive: true }, orderBy: { createdAt: 'desc' } });
         const systemPrompt = instruction?.promptText || `Ты — ассистент ресторана. Меню:\n${menuContext}`;
         const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
         const result = await model.generateContent([systemPrompt, ...messages.map((m: any) => m.content)]);
