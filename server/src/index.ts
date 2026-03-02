@@ -76,8 +76,24 @@ app.put(['/dishes/:id', '/api/dishes/:id'], async (req, res) => {
     res.json(result);
 });
 app.delete(['/dishes/:id', '/api/dishes/:id'], async (req, res) => {
-    const result = await prisma.dish.delete({ where: { id: req.params.id } });
-    res.json(result);
+    try {
+        const dishId = req.params.id;
+        // 1. Сначала удаляем все вхождения блюда в уже существующих заказах (OrderItem)
+        // Иначе БД выдаст ошибку 500 из-за внешнего ключа (Foreign Key Constraint)
+        await prisma.orderItem.deleteMany({ where: { dishId } });
+
+        // 2. Теперь удаляем само блюдо
+        const result = await prisma.dish.delete({ where: { id: dishId } });
+
+        await logAction('УДАЛЕНИЕ БЛЮДА', `Удалено блюдо: ${result.name} (ID: ${dishId})`);
+        res.json({ success: true, result });
+    } catch (e: any) {
+        console.error('❌ Ошибка при удалении блюда:', e.message);
+        res.status(500).json({
+            error: "Ошибка сервера при удалении. Проверьте логи.",
+            details: e.message
+        });
+    }
 });
 
 // --- ЗАКАЗЫ ---
@@ -120,7 +136,7 @@ app.post(['/ai/chat', '/api/ai/chat'], async (req, res) => {
         const dishes = await prisma.dish.findMany({ where: { isAvailable: true } });
         const menuContext = dishes.map(d => `${d.name} (${d.price}₽) - ${d.description}`).join('\n');
 
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
         const prompt = `Ты - Алекс, виртуальный шеф-повар и сомелье ресторана. 
         Вот меню ресторана:
         ${menuContext}
