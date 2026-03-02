@@ -12,12 +12,22 @@ const api = axios.create({
 
 export const menuService = {
     getMenu: async (): Promise<Dish[]> => {
-        const response = await api.get('/menu');
-        return response.data;
+        try {
+            const response = await api.get('/menu');
+            return Array.isArray(response.data) ? response.data : [];
+        } catch (error) {
+            console.error('API Error:', error);
+            return [];
+        }
     },
     getAdminMenu: async (): Promise<Dish[]> => {
-        const response = await api.get('/admin/menu');
-        return response.data;
+        try {
+            const response = await api.get('/admin/menu');
+            return Array.isArray(response.data) ? response.data : [];
+        } catch (error) {
+            console.error('API Error:', error);
+            return [];
+        }
     },
     createDish: async (dishData: Partial<Dish>): Promise<Dish> => {
         const response = await api.post('/dishes', dishData);
