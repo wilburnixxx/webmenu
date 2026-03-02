@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import type { Dish, MenuItem } from '../types';
 
 interface CartContextType {
@@ -12,45 +12,71 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [cart, setCart] = useState<MenuItem[]>([]);
+    // Пытаемся загрузить корзину из localStorage при старте
+    const [cart, setCart] = useState<MenuItem[]>(() => {
+        try {
+            const saved = localStorage.getItem('qr_cart');
+            return saved ? JSON.parse(saved) : [];
+        } catch (e) {
+            console.error('⚠️ Ошибка загрузки корзины:', e);
+            return [];
+        }
+    });
+
+    // Сохраняем в localStorage при каждом изменении
+    useEffect(() => {
+        try {
+            localStorage.setItem('qr_cart', JSON.stringify(cart));
+            console.log('💾 Корзина сохранена в хранилище:', cart.length, 'позиций');
+        } catch (e) {
+            console.error('⚠️ Ошибка сохранения корзины:', e);
+        }
+    }, [cart]);
 
     const addToCart = (dish: Dish) => {
         const dishId = String(dish.id);
-        console.log('🛒 Добавляем в корзину:', dish.name, 'ID:', dishId);
+        console.log('🛒 ДОБАВЛЕНИЕ:', dish.name, 'ID:', dishId);
+
         setCart(prev => {
-            const existing = prev.find(item => String(item.dish.id) === dishId);
-            if (existing) {
-                console.log('✨ Увеличиваем количество для:', dish.name);
-                return prev.map(item =>
-                    String(item.dish.id) === dishId
-                        ? { ...item, quantity: item.quantity + 1 }
-                        : item
-                );
+            const existingIndex = prev.findIndex(item => String(item.dish.id) === dishId);
+
+            if (existingIndex !== -1) {
+                console.log('✨ Позиция уже есть, увеличиваем кол-во');
+                const newCart = [...prev];
+                newCart[existingIndex] = {
+                    ...newCart[existingIndex],
+                    quantity: newCart[existingIndex].quantity + 1
+                };
+                return newCart;
             }
-            console.log('🆕 Новый товар в корзине:', dish.name);
+
+            console.log('🆕 Новая позиция в корзине');
             return [...prev, { dish, quantity: 1 }];
         });
     };
 
     const removeFromCart = (dishId: string) => {
         const idStr = String(dishId);
+        console.log('🗑️ УДАЛЕНИЕ/УМЕНЬШЕНИЕ ID:', idStr);
+
         setCart(prev =>
             prev.map(item =>
                 String(item.dish.id) === idStr
-                    ? { ...item, quantity: Math.max(0, item.quantity - 1) }
+                    ? { ...item, quantity: item.quantity - 1 }
                     : item
             ).filter(item => item.quantity > 0)
         );
     };
 
     const clearCart = () => {
-        console.log('🛒 Очистка корзины');
+        console.log('🧹 ПОЛНАЯ ОЧИСТКА КОРЗИНЫ');
         setCart([]);
+        localStorage.removeItem('qr_cart');
     };
 
     const totalPrice = cart.reduce((sum, item) => {
-        const p = Number(item.dish.price) || 0;
-        return sum + (p * item.quantity);
+        const price = Number(item.dish.price) || 0;
+        return sum + (price * item.quantity);
     }, 0);
 
     return (

@@ -53,6 +53,7 @@ const CustomerMenu = () => {
     }, [activeOrder]);
 
     const { cart, addToCart, removeFromCart, totalPrice, clearCart } = useCart();
+    console.log('🖼️ CustomerMenu Render - Cart Length:', cart.length);
 
     const orderMutation = useMutation({
         mutationFn: (data: any) => orderService.createOrder(data),
