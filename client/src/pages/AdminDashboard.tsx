@@ -152,11 +152,8 @@ const AdminDashboard = () => {
                         <Settings size={24} />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '24px', fontWeight: '900', margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>УПРАВЛЕНИЕ</h1>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <div className="status-indicator" style={{ width: '8px', height: '8px' }} />
-                            <span style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-tertiary)', letterSpacing: '1px' }}>СИСТЕМА ACTIVE</span>
-                        </div>
+                        <h1 style={{ fontSize: '24px', fontWeight: '900', margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>OnlineMenu ADMIN</h1>
+                        
                     </div>
                 </div>
 
@@ -188,10 +185,10 @@ const AdminDashboard = () => {
 
             {/* Admin Stats Row (Responsive) */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '40px' }}>
-                <AdminStatCard title="Заказов" value={metrics?.totalOrders || 0} icon={<Package />} color="#3B82F6" />
+                <AdminStatCard title="Заказов сегодня" value={metrics?.totalOrders || 0} icon={<Package />} color="#3B82F6" />
                 <AdminStatCard title="Выручка" value={`${(metrics?.totalRevenue || 0).toLocaleString()} ₽`} icon={<DollarSign />} color="#4ADE80" onClick={() => { setAdjData({ metricName: 'Volume', value: 0, note: '' }); setIsAdjusting(true); }} />
-                <AdminStatCard title="Блюд" value={dishes?.length || 0} icon={<Utensils />} color="#FF6B35" onClick={() => { setAdjData({ metricName: 'DishesCount', value: 0, note: '' }); setIsAdjusting(true); }} />
-                <AdminStatCard title="Бестселлер" value={metrics?.topDishes?.[0]?.name || '—'} icon={<BarChart3 />} color="#A855F7" />
+                <AdminStatCard title="Позиций в меню" value={dishes?.length || 0} icon={<Utensils />} color="#FF6B35" onClick={() => { setAdjData({ metricName: 'DishesCount', value: 0, note: '' }); setIsAdjusting(true); }} />
+                <AdminStatCard title="Блюдо дня" value={metrics?.topDishes?.[0]?.name || '—'} icon={<BarChart3 />} color="#A855F7" />
             </div>
 
             {/* Tab Contents */}
@@ -303,8 +300,8 @@ const AdminDashboard = () => {
                                     <ChefHat size={36} />
                                 </div>
                                 <div>
-                                    <h2 style={{ margin: 0, fontSize: '28px', fontWeight: '900' }}>Настройка ИИ-Шефа</h2>
-                                    <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-tertiary)', fontWeight: '600' }}>Персонализируйте вашего виртуального сомелье</p>
+                                    <h2 style={{ margin: 0, fontSize: '28px', fontWeight: '900' }}>Настройка ИИ-Ассистента</h2>
+                                    <p style={{ margin: 0, fontSize: '14px', color: 'var(--text-tertiary)', fontWeight: '600' }}>Персонализируйте вашего виртуального помощника</p>
                                 </div>
                             </div>
 
@@ -340,8 +337,8 @@ const AdminDashboard = () => {
                         <div style={{ background: '#FFFFFF', borderRadius: '32px', padding: 'clamp(20px, 5vw, 48px)', border: '1px solid var(--border-color)', boxShadow: '0 12px 40px rgba(0,0,0,0.03)' }}>
                             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '48px', gap: '24px' }}>
                                 <div>
-                                    <h2 style={{ margin: 0, fontSize: '28px', fontWeight: '900' }}>Дизайн QR-кодов</h2>
-                                    <p style={{ margin: 0, fontSize: '15px', color: 'var(--text-tertiary)', marginTop: '8px', fontWeight: '600' }}>Брендированные коды для ваших столов</p>
+                                    <h2 style={{ margin: 0, fontSize: '28px', fontWeight: '900' }}>Генератор QR-кодов</h2>
+                                    <p style={{ margin: 0, fontSize: '15px', color: 'var(--text-tertiary)', marginTop: '8px', fontWeight: '600' }}>QR-коды для ваших столов</p>
                                 </div>
                                 <div style={{ display: 'flex', gap: '12px' }}>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>

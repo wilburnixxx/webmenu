@@ -205,7 +205,7 @@ const CustomerMenu = () => {
                 paddingBottom: '8px'
             }}>
                 <div style={{ fontSize: '18px', fontWeight: '800', letterSpacing: '-0.5px' }}>
-                    LIQUID<span style={{ color: 'var(--primary)' }}>MENU</span>
+                    ONLINE<span style={{ color: 'var(--primary)' }}>MENU</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <button
@@ -220,7 +220,7 @@ const CustomerMenu = () => {
                         }}
                     >
                         <Bell size={18} fill={isCalling ? 'none' : 'currentColor'} style={{ opacity: isCalling ? 0.5 : 1 }} />
-                        <span style={{ fontSize: '10px', fontWeight: '900', letterSpacing: '0.5px' }}>ВЫЗОВ</span>
+                        <span style={{ fontSize: '10px', fontWeight: '900', letterSpacing: '0.5px' }}>ВЫЗОВ ОФИЦИАНТА</span>
                     </button>
                     <div className="status-indicator" style={{ marginRight: '8px' }} />
                     <button
@@ -340,12 +340,12 @@ const CustomerMenu = () => {
                     borderRadius: '24px',
                     boxShadow: '0 15px 35px rgba(255, 107, 53, 0.15)'
                 }}>
-                    <div style={{ fontSize: '11px', fontWeight: '900', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '8px' }}>AI SOMMELIER</div>
-                    <h1 style={{ marginBottom: '12px', fontSize: 'clamp(24px, 5vw, 36px)', color: 'white', lineHeight: '1.1' }}>Что пожелаете?</h1>
+                    <div style={{ fontSize: '11px', fontWeight: '900', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '8px' }}>AI ассистент</div>
+                    <h1 style={{ marginBottom: '12px', fontSize: 'clamp(24px, 5vw, 36px)', color: 'white', lineHeight: '1.1' }}>Не знаете что выбрать?</h1>
                     <p className="body-small" style={{ opacity: 0.9, marginBottom: '20px', maxWidth: '450px', lineHeight: '1.4' }}>
-                        Ваш персональный гид по вкусам. Подберу идеальное блюдо под ваше настроение.
+                        Ваш персональный гид по вкусам. Подберет идеальное блюдо под ваше настроение.
                     </p>
-                    <button onClick={() => setIsAiOpen(true)} className="btn-primary" style={{ background: 'white', color: '#FF6B35', border: 'none', height: '44px', padding: '0 24px', fontSize: '14px' }}>СПОСИТЬ СОВЕТ</button>
+                    <button onClick={() => setIsAiOpen(true)} className="btn-primary" style={{ background: 'white', color: '#FF6B35', border: 'none', height: '44px', padding: '0 24px', fontSize: '14px' }}>СПРОСИТЬ СОВЕТ</button>
                 </div >
 
                 {/* Categories Grid */}
@@ -629,7 +629,7 @@ const CustomerMenu = () => {
 
             {/* Employee Access Footer Pin */}
             < footer style={{ marginTop: '80px', padding: '40px 20px', borderTop: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', opacity: 0.6 }}>
-                <p style={{ fontSize: '12px', fontWeight: '800', letterSpacing: '2px', color: 'var(--text-tertiary)', margin: 0 }}>LIQUID SERVICE V3.0</p>
+                <p style={{ fontSize: '12px', fontWeight: '800', letterSpacing: '2px', color: 'var(--text-tertiary)', margin: 0 }}>ONLINEMENU V1.0</p>
                 <button
                     onClick={() => navigate('/login')}
                     style={{
@@ -639,7 +639,7 @@ const CustomerMenu = () => {
                         cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px'
                     }}
                 >
-                    <User size={14} /> ЛОГИН ДЛЯ ПЕРСОНАЛА
+                    <User size={14} /> STAFF
                 </button>
             </footer >
         </div >
