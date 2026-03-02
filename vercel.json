@@ -1,29 +1,13 @@
 {
-    "version": 2,
-    "outputDirectory": "client/dist",
-    "cleanUrls": true,
-    "trailingSlash": false,
-    "framework": "vite",
-    "routes": [
-        {
-            "src": "/assets/(.*)",
-            "dest": "/assets/$1"
-        },
-        {
-            "src": "/admin(.*)",
-            "dest": "/index.html"
-        },
-        {
-            "src": "/waiter(.*)",
-            "dest": "/index.html"
-        },
-        {
-            "src": "/menu(.*)",
-            "dest": "/index.html"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "/index.html"
-        }
-    ]
+  "outputDirectory": "client/dist",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index.ts"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }
