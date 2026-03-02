@@ -80,3 +80,10 @@ model Category {
   id    String @id @default(uuid())
   name  String @unique
 }
+model ActionLog {
+  id        String   @id @default(uuid())
+  action    String
+  staffName String?
+  details   String?
+  createdAt DateTime @default(now())
+}

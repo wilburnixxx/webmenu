@@ -15,6 +15,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const [cart, setCart] = useState<MenuItem[]>([]);
 
     const addToCart = (dish: Dish) => {
+        console.log('🛒 Добавляем в корзину:', dish.name);
         setCart(prev => {
             const existing = prev.find(item => item.dish.id === dish.id);
             if (existing) {
@@ -38,9 +39,15 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         );
     };
 
-    const clearCart = () => setCart([]);
+    const clearCart = () => {
+        console.log('🛒 Очистка корзины');
+        setCart([]);
+    };
 
-    const totalPrice = cart.reduce((sum, item) => sum + item.dish.price * item.quantity, 0);
+    const totalPrice = cart.reduce((sum, item) => {
+        const p = Number(item.dish.price) || 0;
+        return sum + (p * item.quantity);
+    }, 0);
 
     return (
         <CartContext.Provider value={{ cart, addToCart, removeFromCart, clearCart, totalPrice }}>

@@ -19,7 +19,7 @@ export const menuService = {
         try {
             const res = await api.get('/categories');
             return Array.isArray(res.data) ? res.data : [];
-        } catch (e) {
+        } catch (e: any) {
             console.error('Ошибка в Категориях:', e.message);
             return [];
         }
@@ -32,7 +32,7 @@ export const menuService = {
         try {
             const res = await api.get('/menu');
             return Array.isArray(res.data) ? res.data : [];
-        } catch (e) {
+        } catch (e: any) {
             console.error('Ошибка в Меню:', e.message);
             return [];
         }
@@ -41,7 +41,7 @@ export const menuService = {
         try {
             const res = await api.get('/menu');
             return Array.isArray(res.data) ? res.data : [];
-        } catch (e) {
+        } catch (e: any) {
             console.error('Ошибка в Админ-меню:', e.message);
             return [];
         }
@@ -50,11 +50,27 @@ export const menuService = {
     updateDish: async (id: string, d: any) => (await api.put(`/dishes/${id}`, d)).data,
     deleteDish: async (id: string) => (await api.delete(`/dishes/${id}`)).data,
 
-    // Метрики и прочее
-    getMetrics: async () => ({ totalOrders: 0, totalRevenue: 0, totalDishes: 0 }),
-    getLogs: async () => [],
+    // Метрики и журналы
+    getMetrics: async () => {
+        try {
+            return (await api.get('/metrics')).data;
+        } catch (e) {
+            console.error('Ошибка в Метриках:', e.message);
+            return { totalOrders: 0, totalRevenue: 0, totalDishes: 0, topDishes: [] };
+        }
+    },
+    getLogs: async () => {
+        try {
+            const res = await api.get('/logs');
+            return Array.isArray(res.data) ? res.data : [];
+        } catch (e) {
+            console.error('Ошибка в Журнале:', e.message);
+            return [];
+        }
+    },
     getAiInstructions: async () => ({ promptText: '' }),
-    saveAiInstructions: async (t: string) => ({})
+    saveAiInstructions: async (t: string) => ({}),
+    sendMessage: async (messages: any[]) => (await api.post('/ai/chat', { messages })).data
 };
 
 export const orderService = {
