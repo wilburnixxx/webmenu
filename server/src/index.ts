@@ -257,8 +257,10 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
-// Export for Railway/Vercel
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(PORT, () => console.log(`🚀 Server on port ${PORT}`));
-}
+// Start server
+app.listen(PORT, () => {
+    console.log(`🚀 Server is strictly listening on port ${PORT}`);
+    console.log(`🔗 API Base: http://localhost:${PORT}/api`);
+});
+
 export default app;
