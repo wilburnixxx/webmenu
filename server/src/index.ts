@@ -96,4 +96,11 @@ app.patch(['/orders/:id', '/api/orders/:id'], (req, res) => {
     }));
 });
 
+app.get(['/orders/:id', '/api/orders/:id'], (req, res) => {
+    safeQuery(res, () => prisma.order.findUnique({
+        where: { id: req.params.id },
+        include: { items: { include: { dish: true } } }
+    }));
+});
+
 app.listen(PORT, '0.0.0.0', () => console.log(`🚀 СЕРВЕР ЗАПУЩЕН НА ПОРТУ ${PORT}`));

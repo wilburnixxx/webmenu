@@ -14,6 +14,13 @@ const CustomerMenu = () => {
     const [tableNumber] = useState('5');
     const [selectedDish, setSelectedDish] = useState<any>(null);
 
+    const statusMap: Record<string, { label: string, color: string }> = {
+        PENDING: { label: 'ОЖИДАНИЕ', color: '#8E8E93' },
+        ACCEPTED: { label: 'ГОТОВИТСЯ', color: '#3B82F6' },
+        READY: { label: 'ГОТОВО', color: '#4ADE80' },
+        CANCELLED: { label: 'ОТМЕНЕНО', color: '#FF5757' },
+    };
+
     const [activeOrderId, setActiveOrderId] = useState<string | null>(localStorage.getItem('activeOrderId'));
 
     const { data: dishes, isLoading } = useQuery({
@@ -96,9 +103,18 @@ const CustomerMenu = () => {
             setChatMessages([...newMessages, { role: 'assistant', content: response.text }]);
         } catch (error: any) {
             console.error('AI Error:', error);
-            const errorText = error.response?.status === 429
-                ? "У Алекса сейчас слишком много заказов (лимит запросов). Пожалуйста, попробуйте через 15-20 секунд! ☕"
-                : "Произошла ошибка связи. Проверьте интернет или попробуйте позже. 🔌";
+            let errorText = "Произошла ошибка связи. Проверьте интернет или попробуйте позже. 🔌";
+
+            if (error.response) {
+                const status = error.response.status;
+                if (status === 429) errorText = "У Алекса сейчас слишком много заказов (лимит запросов). Пожалуйста, попробуйте через 15-20 секунд! ☕";
+                else if (status === 500) errorText = `Ошибка сервера (${status}): ${error.response.data?.error || 'Внутренняя ошибка ИИ'}. 🛠️`;
+                else if (status === 404) errorText = "Бэкенд ИИ не найден (404). Проверьте настройки API_URL. 🗺️";
+                else errorText = `Ошибка ${status}: ${error.response.data?.error || 'Что-то пошло не так'}. ⚠️`;
+            } else if (error.request) {
+                errorText = "Сервер не отвечает. Возможно, бэкенд на Railway спит или упал. �";
+            }
+
             setChatMessages([...newMessages, { role: 'assistant', content: errorText }]);
         } finally {
             setIsAiTyping(false);
@@ -182,6 +198,48 @@ const CustomerMenu = () => {
                 ))}
                 <div style={{ minWidth: '40px' }} /> {/* End spacing */}
             </div>
+
+            {/* Active Order Banner (Order Tracking) */}
+            <AnimatePresence>
+                {activeOrderId && activeOrder && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        onClick={() => setIsStatusModalOpen(true)}
+                        className="glass"
+                        style={{
+                            margin: '12px 16px',
+                            padding: '16px 20px',
+                            borderRadius: '20px',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            cursor: 'pointer',
+                            border: '1px solid var(--border-color)',
+                            boxShadow: '0 8px 30px rgba(0,0,0,0.05)',
+                            background: 'rgba(255,255,255,0.95)'
+                        }}
+                    >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                            <div className="status-indicator" style={{
+                                background: statusMap[activeOrder.status]?.color || '#8E8E93',
+                                boxShadow: `0 0 10px ${statusMap[activeOrder.status]?.color}40`
+                            }} />
+                            <div>
+                                <div style={{ fontSize: '11px', fontWeight: '900', opacity: 0.5, letterSpacing: '1px' }}>ВАШ ЗАКАЗ</div>
+                                <div style={{ fontSize: '15px', fontWeight: '900', color: statusMap[activeOrder.status]?.color }}>
+                                    {statusMap[activeOrder.status]?.label || 'ОБРАБОТКА'}
+                                </div>
+                            </div>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontSize: '10px', fontWeight: '800', opacity: 0.4 }}>ПОДРОБНЕЕ</div>
+                            <div className="price-mono" style={{ fontSize: '14px' }}>ID: {activeOrder.id.slice(0, 5).toUpperCase()}</div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Content Area */}
             <main style={{

@@ -60,7 +60,8 @@ export const menuService = {
 export const orderService = {
     getOrders: async () => (await api.get('/orders')).data || [],
     createOrder: async (d: any) => (await api.post('/orders', d)).data,
-    updateOrderStatus: async (id: string, s: string) => (await api.patch(`/orders/${id}`, { status: s })).data
+    updateOrderStatus: async (id: string, s: string) => (await api.patch(`/orders/${id}`, { status: s })).data,
+    getOrder: async (id: string) => (await api.get(`/orders/${id}`)).data
 };
 
 export default api;
