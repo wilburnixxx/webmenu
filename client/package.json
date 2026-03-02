@@ -4,11 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "npx prisma@6.4.0 generate --schema=server/prisma/schema.prisma && npm install --prefix client && npm run build --prefix client",
-    "lint": "eslint .",
-    "preview": "vite preview"
-  },
+  "build": "vite build", 
+  "dev": "vite",
+  "preview": "vite preview"
+},
   "dependencies": {
     "@tanstack/react-query": "^5.90.21",
     "axios": "^1.13.6",
