@@ -2,8 +2,12 @@
   "name": "webmenu-root",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
-    "build": "npx prisma generate --schema=server/prisma/schema.prisma && npm install --prefix client && npm run build --prefix client"
+    "build": "npx prisma generate --schema=server/prisma/schema.prisma && npm install --prefix client && npm run build --prefix client",
+    "start": "cd server && npm install && npm run build && npm start"
   },
   "devDependencies": {
     "prisma": "6.4.0",

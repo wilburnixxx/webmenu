@@ -1,13 +1,11 @@
 {
     "version": 2,
     "outputDirectory": "client/dist",
+    "cleanUrls": true,
+    "trailingSlash": false,
     "rewrites": [
         {
-            "source": "/api/(.*)",
-            "destination": "/server/src/index.ts"
-        },
-        {
-            "source": "/((?!api/|assets/|favicon.ico|vite.svg).*)",
+            "source": "/((?!assets/|favicon.ico|vite.svg).*)",
             "destination": "/index.html"
         }
     ]

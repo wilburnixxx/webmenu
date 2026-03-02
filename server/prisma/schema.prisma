@@ -5,7 +5,7 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -17,7 +17,7 @@ model User {
   id            String   @id @default(uuid())
   email         String   @unique
   passwordHash  String
-  role          String   @default("WAITER") // SQLite doesn't support Enums directly in Prisma easily without native support, using String
+  role          String   @default("WAITER")
   name          String
   pinCode       String?  
   qrToken       String?  @unique 
@@ -33,7 +33,7 @@ model Dish {
   imageUrl     String?
   category     String
   isAvailable  Boolean     @default(true)
-  allergens    String?     @default("") // SQLite does not support String[] arrays, use comma-separated or JSON
+  allergens    String[]    @default([])
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   orderItems   OrderItem[]
