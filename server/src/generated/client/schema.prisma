@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/client"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  role         String   @default("WAITER") // SQLite doesn't support Enums directly in Prisma easily without native support, using String
+  name         String
+  pinCode      String?
+  qrToken      String?  @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Dish {
+  id          String      @id @default(uuid())
+  name        String
+  description String?
+  price       Float
+  imageUrl    String?
+  category    String
+  isAvailable Boolean     @default(true)
+  allergens   String      @default("[]") // SQLite doesn't support String[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  tableNumber String
+  status      String      @default("PENDING")
+  totalPrice  Float
+  comments    String?
+  items       OrderItem[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model OrderItem {
+  id       String @id @default(uuid())
+  orderId  String
+  order    Order  @relation(fields: [orderId], references: [id])
+  dishId   String
+  dish     Dish   @relation(fields: [dishId], references: [id])
+  quantity Int
+  price    Float
+}
+
+model AIInstruction {
+  id         String   @id @default(uuid())
+  promptText String
+  isActive   Boolean  @default(true)
+  version    Int      @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Metric {
+  id        String   @id @default(uuid())
+  eventType String
+  payload   String? // SQLite doesn't have native JSON type in older versions, using String for safety
+  timestamp DateTime @default(now())
+}
