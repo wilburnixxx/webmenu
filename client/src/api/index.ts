@@ -26,6 +26,7 @@ export const menuService = {
     },
     createCategory: async (name: string) => (await api.post('/categories', { name })).data,
     updateCategoryOrder: async (id: string, order: number) => (await api.patch(`/categories/${id}`, { order })).data,
+    reorderCategories: async (categories: { id: string, order: number }[]) => (await api.post('/categories/reorder', { categories })).data,
     deleteCategory: async (id: string) => (await api.delete(`/categories/${id}`)),
 
     // Блюда

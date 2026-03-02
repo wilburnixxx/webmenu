@@ -79,6 +79,19 @@ app.post(['/categories', '/api/categories'], async (req, res) => {
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+app.post(['/categories/reorder', '/api/categories/reorder'], async (req, res) => {
+    try {
+        const { categories } = req.body;
+        await prisma.$transaction(
+            categories.map((c: any) => prisma.category.update({
+                where: { id: c.id },
+                data: { order: parseInt(c.order) }
+            }))
+        );
+        res.json({ success: true });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
 app.patch(['/categories/:id', '/api/categories/:id'], async (req, res) => {
     try {
         const result = await prisma.category.update({

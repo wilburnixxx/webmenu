@@ -11,7 +11,10 @@ const CustomerMenu = () => {
     const [isAiOpen, setIsAiOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
-    const [tableNumber] = useState('5');
+    const [tableNumber] = useState(() => {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('table') || '1';
+    });
     const [selectedDish, setSelectedDish] = useState<any>(null);
 
     const statusMap: Record<string, { label: string, color: string }> = {

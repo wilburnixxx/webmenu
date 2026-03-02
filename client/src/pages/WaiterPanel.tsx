@@ -130,6 +130,13 @@ const WaiterPanel = () => {
                                 })}
                             </div>
 
+                            {order.comments && (
+                                <div style={{ background: 'rgba(255, 107, 53, 0.08)', padding: '16px 20px', borderRadius: '18px', marginBottom: '32px', border: '1px solid rgba(255, 107, 53, 0.1)' }}>
+                                    <p style={{ margin: 0, fontSize: '11px', fontWeight: '900', color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>КОММЕНТАРИЙ ГОСТЯ:</p>
+                                    <p style={{ margin: 0, fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', fontStyle: 'italic', lineHeight: '1.5' }}>"{order.comments}"</p>
+                                </div>
+                            )}
+
                             <div style={{ padding: '24px 0', borderTop: '1px solid var(--border-color)', marginBottom: '32px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <span style={{ fontSize: '12px', fontWeight: '950', color: 'var(--text-tertiary)', letterSpacing: '1px' }}>ИТОГО К ОПЛАТЕ</span>

@@ -3,9 +3,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { menuService } from '../api';
 import {
     Plus, Trash2, BarChart3, Utensils, DollarSign, Package,
-    ChefHat, X, Settings, ArrowUp, ArrowDown
+    ChefHat, X, Settings, ArrowUp, ArrowDown, GripVertical
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 
 const AdminDashboard = () => {
@@ -21,6 +21,7 @@ const AdminDashboard = () => {
     const [isAdjusting, setIsAdjusting] = useState(false);
     const [adjData, setAdjData] = useState<{ metricName: string; value: number | string; note: string }>({ metricName: 'Volume', value: 0, note: '' });
 
+    const [localCats, setLocalCats] = useState<any[]>([]);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     // Queries
@@ -41,6 +42,10 @@ const AdminDashboard = () => {
     useEffect(() => {
         if (currentAiInstruction) setAiPrompt(currentAiInstruction.promptText);
     }, [currentAiInstruction]);
+
+    useEffect(() => {
+        if (categories) setLocalCats([...categories].sort((a, b) => a.order - b.order));
+    }, [categories]);
 
     // Mutations
     const deleteMutation = useMutation({
@@ -100,9 +105,17 @@ const AdminDashboard = () => {
     });
 
     const reorderCatMutation = useMutation({
-        mutationFn: ({ id, order }: { id: string, order: number }) => menuService.updateCategoryOrder(id, order),
+        mutationFn: (newCats: any[]) => {
+            const updates = newCats.map((c, i) => ({ id: c.id, order: i }));
+            return menuService.reorderCategories(updates);
+        },
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] })
     });
+
+    const handleReorder = (newOrderedList: any[]) => {
+        setLocalCats(newOrderedList);
+        reorderCatMutation.mutate(newOrderedList);
+    };
 
     if (menuLoading) return (
         <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '20px', background: 'var(--bg-base)' }}>
@@ -246,20 +259,33 @@ const AdminDashboard = () => {
                                     if (input.value) { createCatMutation.mutate(input.value); input.value = ''; }
                                 }} style={{ padding: '0 32px' }}>Добавить</button>
                             </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                {categories?.sort((a: any, b: any) => a.order - b.order).map((cat: any) => (
-                                    <div key={cat.id} style={{ padding: '16px 24px', background: 'var(--bg-secondary)', borderRadius: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid var(--border-color)' }}>
+                            <Reorder.Group axis="y" values={localCats} onReorder={handleReorder} style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: 0, listStyle: 'none' }}>
+                                {localCats.map((cat: any) => (
+                                    <Reorder.Item
+                                        key={cat.id}
+                                        value={cat}
+                                        style={{
+                                            padding: '16px 24px', background: 'var(--bg-secondary)', borderRadius: '20px',
+                                            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                                            border: '1px solid var(--border-color)', cursor: 'grab'
+                                        }}
+                                        whileDrag={{ scale: 1.02, boxShadow: '0 10px 40px rgba(0,0,0,0.08)' }}
+                                    >
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                                <button onClick={() => reorderCatMutation.mutate({ id: cat.id, order: cat.order - 1.5 })} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: '2px' }}><ArrowUp size={16} /></button>
-                                                <button onClick={() => reorderCatMutation.mutate({ id: cat.id, order: cat.order + 1.5 })} style={{ border: 'none', background: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', padding: '2px' }}><ArrowDown size={16} /></button>
+                                            <div style={{ color: 'var(--text-tertiary)', display: 'flex' }}>
+                                                <GripVertical size={20} />
                                             </div>
                                             <span style={{ fontWeight: '800', color: 'var(--text-primary)', fontSize: '16px' }}>{cat.name}</span>
                                         </div>
-                                        <button onClick={() => deleteCatMutation.mutate(cat.id)} style={{ color: 'var(--error)', border: 'none', background: 'none', cursor: 'pointer', padding: '8px' }}><Trash2 size={18} /></button>
-                                    </div>
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); deleteCatMutation.mutate(cat.id); }}
+                                            style={{ color: 'var(--error)', border: 'none', background: 'none', cursor: 'pointer', padding: '8px' }}
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </Reorder.Item>
                                 ))}
-                            </div>
+                            </Reorder.Group>
                         </div>
                     </motion.div>
                 )}
