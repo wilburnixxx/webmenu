@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-  "build": "npm run build --prefix client"
+  "build": "npm install --prefix client && npm run build --prefix client"
 },
   "devDependencies": {
     "prisma": "6.4.0",
