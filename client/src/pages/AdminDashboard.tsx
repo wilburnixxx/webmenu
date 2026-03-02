@@ -12,7 +12,7 @@ const AdminDashboard = () => {
     const queryClient = useQueryClient();
     const [editingDish, setEditingDish] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<'dishes' | 'categories' | 'ai' | 'qr' | 'logs' | 'trash'>('dishes');
+    const [activeTab, setActiveTab] = useState<'dishes' | 'categories' | 'ai' | 'qr' | 'logs'>('dishes');
     const [aiPrompt, setAiPrompt] = useState('');
     const [qrData, setQrData] = useState({ table: '1', seats: '4' });
     const [copied, setCopied] = useState(false);
@@ -49,7 +49,12 @@ const AdminDashboard = () => {
 
     // Mutations
     const deleteMutation = useMutation({
-        mutationFn: (id: string) => menuService.deleteDish(id),
+        mutationFn: (id: string) => {
+            if (window.confirm('Вы уверены, что хотите безвозвратно удалить это блюдо из меню? Это действие нельзя отменить.')) {
+                return menuService.deleteDish(id);
+            }
+            throw new Error('Удаление отменено');
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['admin-menu'] });
             queryClient.invalidateQueries({ queryKey: ['metrics'] });
@@ -129,8 +134,7 @@ const AdminDashboard = () => {
         categories: 'КАТЕГОРИИ',
         ai: 'ИИ-ШЕФ',
         qr: 'QR-КОДЫ',
-        logs: 'ЖУРНАЛ',
-        trash: 'КОРЗИНА'
+        logs: 'ЖУРНАЛ'
     };
 
     return (
@@ -157,7 +161,7 @@ const AdminDashboard = () => {
                 </div>
 
                 <div style={{ display: 'flex', gap: '4px', background: 'var(--bg-secondary)', padding: '6px', borderRadius: '16px', overflowX: 'auto', maxWidth: '100%', scrollbarWidth: 'none' }}>
-                    {(['dishes', 'categories', 'ai', 'qr', 'logs', 'trash'] as const).map((tab: string) => (
+                    {(['dishes', 'categories', 'ai', 'qr', 'logs'] as const).map((tab: string) => (
                         <button key={tab}
                             onClick={() => setActiveTab(tab as any)}
                             style={{

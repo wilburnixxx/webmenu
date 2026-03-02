@@ -59,7 +59,7 @@ app.post(['/ai/instructions', '/api/ai/instructions'], async (req, res) => {
         const result = await prisma.aIInstruction.create({
             data: { promptText, version: (await prisma.aIInstruction.count()) + 1 }
         });
-        await logAction('ОБУЧЕНИЕ ИИ', `Новая версия v${result.version}`);
+        await logAction('ОБУЧЕНИЕ ИИ', `Новая версия v${result.version}`, 'Админ');
         res.json(result);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -143,7 +143,8 @@ app.delete(['/dishes/:id', '/api/dishes/:id'], async (req, res) => {
     try {
         await prisma.$transaction(async (tx) => {
             await tx.orderItem.deleteMany({ where: { dishId: req.params.id } });
-            await tx.dish.delete({ where: { id: req.params.id } });
+            const dish = await tx.dish.delete({ where: { id: req.params.id } });
+            await logAction('УДАЛЕНИЕ БЛЮДА', `Удалено: ${dish.name}`, 'Админ');
         });
         res.json({ success: true });
     } catch (e) { res.status(500).json({ error: e.message }); }
@@ -159,7 +160,7 @@ app.post(['/orders', '/api/orders'], async (req, res) => {
                 items: { create: items.map(it => ({ dishId: it.dishId, quantity: it.quantity, price: parseFloat(it.price) || 0 })) }
             }
         });
-        await logAction('НОВЫЙ ЗАКАЗ', `Стол ${tableNumber}, ${totalPrice}₽`);
+        await logAction('НОВЫЙ ЗАКАЗ', `Стол ${tableNumber}, ${totalPrice}₽`, 'Гость');
         res.json(result);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -168,6 +169,7 @@ app.get(['/orders', '/api/orders'], (req, res) => safeQuery(res, () => prisma.or
 app.get(['/orders/:id', '/api/orders/:id'], (req, res) => safeQuery(res, () => prisma.order.findUnique({ where: { id: req.params.id }, include: { items: { include: { dish: true } } } })));
 app.patch(['/orders/:id', '/api/orders/:id'], async (req, res) => {
     const result = await prisma.order.update({ where: { id: req.params.id }, data: { status: req.body.status } });
+    await logAction('СТАТУС ЗАКАЗА', `Заказ ${result.id.slice(0, 5)} -> ${req.body.status}`, 'Официант');
     res.json(result);
 });
 
@@ -196,6 +198,14 @@ app.get(['/metrics', '/api/metrics'], async (req, res) => {
         const orders = await prisma.order.findMany({ where: { status: { not: 'CANCELLED' } } });
         res.json({ totalOrders: orders.length, totalRevenue: orders.reduce((sum, o) => sum + o.totalPrice, 0), totalDishes: await prisma.dish.count(), topDishes: [] });
     } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post(['/metrics/adjust', '/api/metrics/adjust'], async (req, res) => {
+    try {
+        const { metricName, value, note } = req.body;
+        await logAction('КОРРЕКТИРОВКА', `${metricName}: ${value} (${note})`, 'Руководитель');
+        res.json({ success: true });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
 app.listen(PORT, '0.0.0.0', () => console.log(`🚀 СЕРВЕР v2.1.5 ПОРТ ${PORT}`));
