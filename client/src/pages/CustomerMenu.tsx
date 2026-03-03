@@ -3,9 +3,27 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { menuService, orderService, callService } from '../api';
 import DishCard from '../components/DishCard';
-import { ShoppingBag, Plus, Minus, Send, ChevronUp, X, ChefHat, User, Bell } from 'lucide-react';
+import { ShoppingBag, Plus, Minus, Send, ChevronUp, X, ChefHat, User, Bell, Flame, Wind, Droplets, Zap, RotateCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
+
+const ActionButton = ({ icon, label, onClick, active }: any) => (
+    <button
+        onClick={onClick}
+        disabled={active}
+        style={{
+            background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+            color: active ? 'var(--text-tertiary)' : 'var(--text-primary)',
+            padding: '10px 4px', borderRadius: '16px',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+            cursor: 'pointer', transition: 'all 0.2s', width: '100%',
+            opacity: active ? 0.6 : 1
+        }}
+    >
+        <div style={{ color: active ? 'inherit' : 'var(--primary)' }}>{icon}</div>
+        <span style={{ fontSize: '9px', fontWeight: '900', letterSpacing: '0.5px' }}>{label}</span>
+    </button>
+);
 
 const CustomerMenu = () => {
     const navigate = useNavigate();
@@ -21,6 +39,12 @@ const CustomerMenu = () => {
     const [selectedDish, setSelectedDish] = useState<any>(null);
     const [isCalling, setIsCalling] = useState(false);
     const [callSuccess, setCallSuccess] = useState(false);
+    const [callMessage, setCallMessage] = useState('Мастер скоро подойдет! 💨');
+
+    // Hookah Constructor State
+    const [hookahStrength, setHookahStrength] = useState<number>(5);
+    const [selectedTobacco, setSelectedTobacco] = useState<any>(null);
+    const [selectedLiquid, setSelectedLiquid] = useState<any>(null);
 
     const statusMap: Record<string, { label: string, color: string }> = {
         PENDING: { label: 'ОЖИДАНИЕ', color: '#8E8E93' },
@@ -85,11 +109,13 @@ const CustomerMenu = () => {
         }
     });
 
-    const handleCallWaiter = () => {
+    const handleCallAction = (type: string, message: string) => {
         if (isCalling) return;
         setIsCalling(true);
-        callMutation.mutate();
+        setCallMessage(message);
+        callMutation.mutate(type as any); // Modified callService expects type
     };
+
 
     const categories = menuCategories?.map((c: any) => c.name) || [];
 
@@ -188,7 +214,7 @@ const CustomerMenu = () => {
                             <div style={{ padding: '8px', background: 'var(--primary)', borderRadius: '10px' }}>
                                 <Bell size={16} fill="white" />
                             </div>
-                            <span style={{ fontSize: '14px', fontWeight: '700' }}>Официант скоро подойдет! 🧑‍🍳</span>
+                            <span style={{ fontSize: '14px', fontWeight: '700' }}>{callMessage}</span>
                         </div>
                     </motion.div>
                 )}
@@ -208,20 +234,6 @@ const CustomerMenu = () => {
                     ONLINE<span style={{ color: 'var(--primary)' }}>MENU</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <button
-                        onClick={handleCallWaiter}
-                        disabled={isCalling}
-                        style={{
-                            background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
-                            color: isCalling ? 'var(--text-tertiary)' : 'var(--primary)',
-                            padding: '8px 12px', borderRadius: '12px',
-                            display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
-                            transition: 'all 0.2s'
-                        }}
-                    >
-                        <Bell size={18} fill={isCalling ? 'none' : 'currentColor'} style={{ opacity: isCalling ? 0.5 : 1 }} />
-                        <span style={{ fontSize: '10px', fontWeight: '900', letterSpacing: '0.5px' }}>ВЫЗОВ ОФИЦИАНТА</span>
-                    </button>
                     <div className="status-indicator" style={{ marginRight: '8px' }} />
                     <button
                         onClick={() => setIsCartOpen(true)}
@@ -243,6 +255,19 @@ const CustomerMenu = () => {
                     </button>
                 </div>
             </header>
+
+            {/* Quick Actions Bar */}
+            <div style={{
+                display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px',
+                padding: '12px 16px', background: 'var(--bg-base)',
+                position: 'sticky', top: 'calc(56px + env(safe-area-inset-top, 0px))', zIndex: 998,
+                borderBottom: '1px solid var(--border-color)', backdropFilter: 'blur(20px)'
+            }}>
+                <ActionButton icon={<User size={18} />} label="МАСТЕР" onClick={() => handleCallAction('MASTER', 'Мастер скоро подойдет! 💨')} active={isCalling} />
+                <ActionButton icon={<Flame size={18} />} label="УГЛИ" onClick={() => handleCallAction('COALS', 'Угли уже в пути! 🔥')} active={isCalling} />
+                <ActionButton icon={<RotateCw size={18} />} label="ТАБАК" onClick={() => handleCallAction('TOBACCO', 'Сейчас заменим табак! 🍃')} active={isCalling} />
+                <ActionButton icon={<Zap size={18} />} label="КАЛЬЯН" onClick={() => handleCallAction('HOOKAH_CHANGE', 'Готовим новый кальян! 🌬️')} active={isCalling} />
+            </div>
 
             {/* Category Scroll (Sticky/Non-Sticky Switch Base on scroll) */}
             <div style={{
@@ -330,23 +355,122 @@ const CustomerMenu = () => {
                 width: '100%'
             }}>
 
-                {/* AI Brand Box */}
-                < div className="card" style={{
+                {/* Hookah Constructor Section */}
+                <section className="card" style={{
                     padding: 'clamp(20px, 5vw, 32px)',
-                    background: 'linear-gradient(135deg, #a34725ff 0%, #965233ff 100%)',
-                    color: 'white',
-                    position: 'relative',
-                    border: 'none',
-                    borderRadius: '24px',
-                    boxShadow: '0 15px 35px rgba(255, 107, 53, 0.15)'
+                    background: '#FFFFFF',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '32px',
+                    boxShadow: '0 10px 40px rgba(0,0,0,0.03)'
                 }}>
-                    <div style={{ fontSize: '11px', fontWeight: '900', opacity: 0.9, textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '8px' }}>AI ассистент</div>
-                    <h1 style={{ marginBottom: '12px', fontSize: 'clamp(24px, 5vw, 36px)', color: 'white', lineHeight: '1.1' }}>Не знаете что выбрать?</h1>
-                    <p className="body-small" style={{ opacity: 0.9, marginBottom: '20px', maxWidth: '450px', lineHeight: '1.4' }}>
-                        Ваш персональный гид по вкусам. Подберет идеальное блюдо под ваше настроение.
-                    </p>
-                    <button onClick={() => setIsAiOpen(true)} className="btn-primary" style={{ background: 'white', color: '#9e411fff', border: 'none', height: '44px', padding: '0 24px', fontSize: '14px' }}>СПРОСИТЬ СОВЕТ</button>
-                </div >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                        <div style={{ background: 'var(--primary)', padding: '10px', borderRadius: '14px', color: 'white' }}>
+                            <Wind size={20} />
+                        </div>
+                        <h2 style={{ fontSize: '24px', margin: 0, fontWeight: '900' }}>КОНСТРУКТОР</h2>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                        {/* 1. Strength Selector */}
+                        <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                                <span style={{ fontSize: '11px', fontWeight: '900', color: 'var(--text-tertiary)', letterSpacing: '1px' }}>КРЕПОСТЬ: {hookahStrength}/10</span>
+                                <span style={{ background: 'var(--bg-tertiary)', padding: '4px 10px', borderRadius: '8px', fontSize: '10px', fontWeight: '800' }}>{hookahStrength < 4 ? 'ЛЕГКИЙ' : hookahStrength < 8 ? 'СРЕДНИЙ' : 'КРЕПКИЙ'}</span>
+                            </div>
+                            <input
+                                type="range"
+                                min="0"
+                                max="10"
+                                step="1"
+                                value={hookahStrength}
+                                onChange={(e) => setHookahStrength(parseInt(e.target.value))}
+                                style={{
+                                    width: '100%', height: '8px', borderRadius: '4px',
+                                    background: `linear-gradient(to right, var(--primary) ${hookahStrength * 10}%, var(--bg-tertiary) ${hookahStrength * 10}%)`,
+                                    WebkitAppearance: 'none', cursor: 'pointer'
+                                }}
+                            />
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', color: 'var(--text-tertiary)', fontSize: '10px', fontWeight: '800' }}>
+                                <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span>
+                            </div>
+                        </div>
+
+                        {/* 2. Tobacco Selector */}
+                        <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                                <span style={{ fontSize: '11px', fontWeight: '900', color: 'var(--text-tertiary)', letterSpacing: '1px' }}>ВЫБОР ТАБАКА</span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
+                                {dishes?.filter(d => d.category === 'Табак').map((t: any) => (
+                                    <button
+                                        key={t.id}
+                                        onClick={() => setSelectedTobacco(t)}
+                                        style={{
+                                            padding: '12px 18px', borderRadius: '16px', border: '1px solid',
+                                            borderColor: selectedTobacco?.id === t.id ? 'var(--primary)' : 'var(--border-color)',
+                                            background: selectedTobacco?.id === t.id ? 'var(--primary-bg-alpha)' : 'var(--bg-secondary)',
+                                            color: selectedTobacco?.id === t.id ? 'var(--primary)' : 'var(--text-primary)',
+                                            fontSize: '13px', fontWeight: '700', whiteSpace: 'nowrap', transition: 'all 0.2s'
+                                        }}
+                                    >
+                                        {t.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* 3. Liquid Selector */}
+                        <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+                                <span style={{ fontSize: '11px', fontWeight: '900', color: 'var(--text-tertiary)', letterSpacing: '1px' }}>ЖИДКОСТЬ В КОЛБУ</span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
+                                {dishes?.filter(d => d.category === 'Жидкость').map((l: any) => (
+                                    <button
+                                        key={l.id}
+                                        onClick={() => setSelectedLiquid(l)}
+                                        style={{
+                                            padding: '12px 18px', borderRadius: '16px', border: '1px solid',
+                                            borderColor: selectedLiquid?.id === l.id ? 'var(--primary)' : 'var(--border-color)',
+                                            background: selectedLiquid?.id === l.id ? 'var(--primary-bg-alpha)' : 'var(--bg-secondary)',
+                                            color: selectedLiquid?.id === l.id ? 'var(--primary)' : 'var(--text-primary)',
+                                            fontSize: '13px', fontWeight: '700', whiteSpace: 'nowrap', transition: 'all 0.2s',
+                                            display: 'flex', alignItems: 'center', gap: '8px'
+                                        }}
+                                    >
+                                        <Droplets size={14} /> {l.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <button
+                            disabled={!selectedTobacco || !selectedLiquid}
+                            onClick={() => {
+                                addToCart({
+                                    id: `custom-${Date.now()}`,
+                                    name: `Hookah: ${selectedTobacco.name}`,
+                                    price: selectedTobacco.price + (selectedLiquid?.price || 0),
+                                    description: `Крепость: ${hookahStrength}/10, Наполнение: ${selectedLiquid.name}`,
+                                    category: 'Custom',
+                                    imageUrl: 'https://images.unsplash.com/photo-1542332213-9b5a5a3fad35?auto=format&fit=crop&q=80&w=400',
+                                    isAvailable: true,
+                                    allergens: [],
+                                    createdAt: new Date().toISOString(),
+                                    updatedAt: new Date().toISOString()
+                                } as any);
+                                // Reset after add
+                                setSelectedTobacco(null);
+                                setSelectedLiquid(null);
+                                setHookahStrength(5);
+                            }}
+                            className="btn-primary"
+                            style={{ width: '100%', height: '56px', borderRadius: '20px', fontSize: '15px' }}
+                        >
+                            ДОБАВИТЬ В КОРЗИНУ ({(selectedTobacco?.price || 0) + (selectedLiquid?.price || 0)} ₽)
+                        </button>
+                    </div>
+                </section>
 
                 {/* Categories Grid */}
                 {

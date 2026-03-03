@@ -123,7 +123,7 @@ export const orderService = {
 };
 
 export const callService = {
-    createCall: async (tableNumber: string) => (await api.post('/calls', { tableNumber })).data,
+    createCall: async (tableNumber: string, type: string = 'MASTER') => (await api.post('/calls', { tableNumber, type })).data,
     getCalls: async () => (await api.get('/calls')).data || [],
     completeCall: async (id: string) => (await api.patch(`/calls/${id}`, { status: 'DONE' })).data
 };

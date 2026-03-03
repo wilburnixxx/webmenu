@@ -103,7 +103,7 @@ const WaiterPanel = () => {
                         <Layout color="white" size={32} />
                     </div>
                     <div>
-                        <h1 style={{ fontSize: '24px', fontWeight: '900', margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>ЭКРАН ОФИЦИАНТА</h1>
+                        <h1 style={{ fontSize: '24px', fontWeight: '900', margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>ПАНЕЛЬ МАСТЕРА</h1>
                         <p style={{ fontSize: '11px', fontWeight: '800', opacity: 0.5, letterSpacing: '1px', textTransform: 'uppercase' }}>АКТИВНЫХ ЗАКАЗОВ: {activeOrders?.length || 0}</p>
                     </div>
                 </div>
@@ -117,9 +117,9 @@ const WaiterPanel = () => {
                 <div style={{ marginBottom: '40px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
                         <Bell size={20} color="var(--primary)" fill="var(--primary)" />
-                        <h2 style={{ fontSize: '18px', fontWeight: '900', margin: 0 }}>ВЫЗОВЫ ({(activeCalls as any[]).length})</h2>
+                        <h2 style={{ fontSize: '18px', fontWeight: '900', margin: 0 }}>ЗАПРОСЫ ({(activeCalls as any[]).length})</h2>
                     </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
                         <AnimatePresence>
                             {(activeCalls as any[]).map((call: any) => (
                                 <motion.div
@@ -128,23 +128,53 @@ const WaiterPanel = () => {
                                     animate={{ scale: 1, opacity: 1 }}
                                     exit={{ scale: 0.8, opacity: 0 }}
                                     style={{
-                                        background: '#1A1A1A', color: 'white', padding: '16px 24px',
-                                        borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '20px',
+                                        background: '#1A1A1A', color: 'white', padding: '20px 24px',
+                                        borderRadius: '24px', display: 'flex', flexDirection: 'column', gap: '16px',
                                         boxShadow: '0 8px 25px rgba(255, 107, 53, 0.2)',
-                                        border: '1px solid rgba(255,107,53,0.3)'
+                                        border: '1px solid rgba(255,107,53,0.3)',
+                                        position: 'relative', overflow: 'hidden'
                                     }}
                                 >
-                                    <div style={{ fontSize: '20px', fontWeight: '950' }}>СТОЛ {call.tableNumber}</div>
-                                    <button
-                                        onClick={() => callCompleteMutation.mutate(call.id)}
-                                        style={{
-                                            background: 'var(--primary)', border: 'none', color: 'white',
-                                            padding: '8px 16px', borderRadius: '12px', fontSize: '11px',
-                                            fontWeight: '900', cursor: 'pointer'
-                                        }}
-                                    >
-                                        ПРИНЯТЬ
-                                    </button>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <div style={{ fontSize: '24px', fontWeight: '950', letterSpacing: '-1px' }}>СТОЛ {call.tableNumber}</div>
+                                        <div style={{
+                                            background: 'rgba(255, 107, 53, 0.15)',
+                                            color: 'var(--primary)',
+                                            padding: '6px 12px',
+                                            borderRadius: '10px',
+                                            fontSize: '11px',
+                                            fontWeight: '900',
+                                            textTransform: 'uppercase',
+                                            border: '1px solid rgba(255,107,53,0.2)'
+                                        }}>
+                                            {call.type === 'MASTER' ? 'Вызов мастера' :
+                                                call.type === 'COALS' ? 'Замена углей' :
+                                                    call.type === 'TOBACCO' ? 'Замена табака' :
+                                                        call.type === 'HOOKAH_CHANGE' ? 'Замена кальяна' : call.type}
+                                        </div>
+                                    </div>
+
+                                    <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+                                        <button
+                                            onClick={() => callCompleteMutation.mutate(call.id)}
+                                            style={{
+                                                flex: 1, background: 'var(--primary)', border: 'none', color: 'white',
+                                                padding: '12px', borderRadius: '14px', fontSize: '13px',
+                                                fontWeight: '900', cursor: 'pointer', transition: 'all 0.2s'
+                                            }}
+                                            onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
+                                            onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+                                        >
+                                            ПРИНЯТЬ И ВЫПОЛНИТЬ
+                                        </button>
+                                    </div>
+
+                                    {/* Subtle pulse effect for high priority */}
+                                    <motion.div
+                                        animate={{ opacity: [0.1, 0.2, 0.1] }}
+                                        transition={{ duration: 2, repeat: Infinity }}
+                                        style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0, pointerEvents: 'none', background: 'var(--primary)' }}
+                                    />
                                 </motion.div>
                             ))}
                         </AnimatePresence>

@@ -130,9 +130,9 @@ const AdminDashboard = () => {
     );
 
     const tabLabels = {
-        dishes: 'МЕНЮ',
+        dishes: 'ПОЗИЦИИ',
         categories: 'КАТЕГОРИИ',
-        ai: 'ИИ-ШЕФ',
+        ai: 'ИИ-МАСТЕР',
         qr: 'QR-КОДЫ',
         logs: 'ЖУРНАЛ'
     };
@@ -153,7 +153,7 @@ const AdminDashboard = () => {
                     </div>
                     <div>
                         <h1 style={{ fontSize: '24px', fontWeight: '900', margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>OnlineMenu ADMIN</h1>
-                        
+
                     </div>
                 </div>
 
@@ -175,11 +175,22 @@ const AdminDashboard = () => {
                     ))}
                 </div>
 
+                {activeTab === 'dishes' && (
+                    <div style={{
+                        background: 'var(--primary-bg-alpha)', padding: '12px 20px', borderRadius: '16px',
+                        fontSize: '12px', border: '1px solid var(--primary)', color: 'var(--primary)',
+                        display: 'flex', alignItems: 'center', gap: '10px'
+                    }}>
+                        <Zap size={16} />
+                        <span><strong>Система Кальянной v4.0:</strong> Для работы конструктора создайте категории <b>"Табак"</b> и <b>"Жидкость"</b>.</span>
+                    </div>
+                )}
+
                 <button className="btn-primary" onClick={() => {
                     setEditingDish({ name: '', price: 0, category: categories?.[0]?.name || '', description: '', imageUrl: '', allergens: [], isAvailable: true });
                     setIsModalOpen(true);
                 }} style={{ padding: '0 32px' }}>
-                    <Plus size={20} /> ДОБАВИТЬ БЛЮДО
+                    <Plus size={20} /> ДОБАВИТЬ ПОЗИЦИЮ
                 </button>
             </header>
 
