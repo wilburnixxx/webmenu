@@ -113,7 +113,7 @@ const AdminDashboard = () => {
             // Generate and download report
             if (data.length > 0) {
                 const BOM = "\uFEFF"; // UTF-8 BOM for Excel support
-                let csv = "№;Дата и Время;Позиция;Сумма;Итого\n";
+                let csv = "№;Дата и Время;Позиция;Сумма\n";
 
                 data.forEach((order, index) => {
                     const date = new Date(order.createdAt).toLocaleString();
@@ -124,13 +124,13 @@ const AdminDashboard = () => {
                         const itemName = `${it.dish?.name || 'Товар'} x${it.quantity}`;
                         const itemPrice = `${it.price * it.quantity}₸`;
 
-                        csv += `${orderNum};${orderDate};${itemName};${itemPrice};\n`;
+                        csv += `${orderNum};${orderDate};${itemName};${itemPrice}\n`;
                     });
 
                     // Total row for this order
-                    csv += "; ; ;ИТОГО:;\"" + order.totalPrice + "₸\"\n";
+                    csv += "; ;ИТОГО:;" + order.totalPrice + "₸\n";
                     // Empty separator row
-                    csv += "; ; ; ;\n";
+                    csv += "; ; ; \n";
                 });
 
                 const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });

@@ -659,6 +659,12 @@ const CustomerMenu = () => {
                                         </>
                                     );
                                 })()}
+
+                                {/* Total Price Section */}
+                                <div style={{ marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '13px', fontWeight: '900', opacity: 0.5, letterSpacing: '1px' }}>ИТОГО К ОПЛАТЕ:</span>
+                                    <span style={{ fontSize: '20px', fontWeight: '950', color: 'var(--primary)' }}>{activeOrder.totalPrice} ₸</span>
+                                </div>
                             </div>
 
                             <button onClick={() => setIsStatusModalOpen(false)} className="btn-primary" style={{ width: '100%', height: '56px', borderRadius: '16px', flexShrink: 0 }}>ПОНЯТНО</button>
