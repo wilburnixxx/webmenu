@@ -187,7 +187,7 @@ const AdminDashboard = () => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '40px' }}>
                 <AdminStatCard title="Заказов сегодня" value={metrics?.totalOrders || 0} icon={<Package />} color="#3B82F6" />
                 <AdminStatCard title="Выручка" value={`${(metrics?.totalRevenue || 0).toLocaleString()} ₽`} icon={<DollarSign />} color="#4ADE80" onClick={() => { setAdjData({ metricName: 'Volume', value: 0, note: '' }); setIsAdjusting(true); }} />
-                <AdminStatCard title="Позиций в меню" value={dishes?.length || 0} icon={<Utensils />} color="#FF6B35" onClick={() => { setAdjData({ metricName: 'DishesCount', value: 0, note: '' }); setIsAdjusting(true); }} />
+                <AdminStatCard title="Позиций в меню" value={dishes?.length || 0} icon={<Utensils />} color="#913f22ff" onClick={() => { setAdjData({ metricName: 'DishesCount', value: 0, note: '' }); setIsAdjusting(true); }} />
                 <AdminStatCard title="Блюдо дня" value={metrics?.topDishes?.[0]?.name || '—'} icon={<BarChart3 />} color="#A855F7" />
             </div>
 
@@ -200,7 +200,7 @@ const AdminDashboard = () => {
                                 <div style={{ position: 'relative', paddingTop: '60%', overflow: 'hidden' }}>
                                     <img src={dish.imageUrl} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
                                     <div style={{ position: 'absolute', top: '12px', left: '12px' }}>
-                                        <span className="badge-category" style={{ background: 'rgba(255,107,53,0.9)', color: 'white' }}>{dish.category}</span>
+                                        <span className="badge-category" style={{ background: 'rgba(146, 63, 32, 0.9)', color: 'white' }}>{dish.category}</span>
                                     </div>
                                 </div>
                                 <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>

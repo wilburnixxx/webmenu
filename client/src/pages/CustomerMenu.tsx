@@ -333,7 +333,7 @@ const CustomerMenu = () => {
                 {/* AI Brand Box */}
                 < div className="card" style={{
                     padding: 'clamp(20px, 5vw, 32px)',
-                    background: 'linear-gradient(135deg, #FF6B35 0%, #FF8A52 100%)',
+                    background: 'linear-gradient(135deg, #a34725ff 0%, #965233ff 100%)',
                     color: 'white',
                     position: 'relative',
                     border: 'none',
@@ -345,7 +345,7 @@ const CustomerMenu = () => {
                     <p className="body-small" style={{ opacity: 0.9, marginBottom: '20px', maxWidth: '450px', lineHeight: '1.4' }}>
                         Ваш персональный гид по вкусам. Подберет идеальное блюдо под ваше настроение.
                     </p>
-                    <button onClick={() => setIsAiOpen(true)} className="btn-primary" style={{ background: 'white', color: '#FF6B35', border: 'none', height: '44px', padding: '0 24px', fontSize: '14px' }}>СПРОСИТЬ СОВЕТ</button>
+                    <button onClick={() => setIsAiOpen(true)} className="btn-primary" style={{ background: 'white', color: '#9e411fff', border: 'none', height: '44px', padding: '0 24px', fontSize: '14px' }}>СПРОСИТЬ СОВЕТ</button>
                 </div >
 
                 {/* Categories Grid */}
@@ -543,7 +543,7 @@ const CustomerMenu = () => {
                                 }}
                             >
                                 <header style={{
-                                    height: '72px', background: 'linear-gradient(135deg, var(--primary) 0%, #FF8A52 100%)',
+                                    height: '72px', background: 'linear-gradient(135deg, var(--primary) 0%, #814528ff 100%)',
                                     display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 24px', color: 'white'
                                 }}>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
