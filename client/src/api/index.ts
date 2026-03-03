@@ -112,7 +112,20 @@ export const menuService = {
         }
     },
     createAdjustment: async (data: any) => (await api.post('/metrics/adjust', data)).data,
-    sendMessage: async (messages: any[]) => (await api.post('/ai/chat', { messages })).data
+    sendMessage: async (messages: any[]) => (await api.post('/ai/chat', { messages })).data,
+
+    // Промо-слайдер
+    getPromos: async () => {
+        try {
+            const res = await api.get('/promos');
+            return Array.isArray(res.data) ? res.data : [];
+        } catch (e: any) {
+            console.error('Ошибка в Промо:', e.message);
+            return [];
+        }
+    },
+    createPromo: async (promo: any) => (await api.post('/promos', promo)).data,
+    deletePromo: async (id: string) => (await api.delete(`/promos/${id}`)).data
 };
 
 export const orderService = {

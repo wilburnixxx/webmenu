@@ -184,22 +184,38 @@ app.delete(['/dishes/:id', '/api/dishes/:id'], async (req, res) => {
 app.post(['/orders', '/api/orders'], async (req, res) => {
     try {
         const { tableNumber, items, totalPrice, comments } = req.body;
+        console.log('📦 Новый заказ:', { tableNumber, itemCount: items?.length, totalPrice });
 
-        // Валидация столика 0-100
         const tableIdx = parseInt(tableNumber);
         if (isNaN(tableIdx) || tableIdx < 0 || tableIdx > 100) {
             return res.status(400).json({ error: 'Некорректный номер столика (0-100)' });
         }
 
+        if (!items || !Array.isArray(items) || items.length === 0) {
+            return res.status(400).json({ error: 'Корзина пуста' });
+        }
+
         const result = await prisma.order.create({
             data: {
-                tableNumber: String(tableIdx), totalPrice: parseFloat(totalPrice) || 0, comments,
-                items: { create: items.map(it => ({ dishId: it.dishId, quantity: it.quantity, price: parseFloat(it.price) || 0 })) }
+                tableNumber: String(tableIdx),
+                totalPrice: parseFloat(totalPrice) || 0,
+                comments: comments || '',
+                items: {
+                    create: items.map((it: any) => ({
+                        dishId: it.dishId,
+                        quantity: parseInt(it.quantity) || 1,
+                        price: parseFloat(it.price) || 0
+                    }))
+                }
             }
         });
-        await logAction('НОВЫЙ ЗАКАЗ', `Стол ${tableNumber}, ${totalPrice}₽`, 'Гость');
+
+        await logAction('НОВЫЙ ЗАКАЗ', `Стол ${tableNumber}, ${result.totalPrice}₽`, 'Гость');
         res.json(result);
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e: any) {
+        console.error('❌ Ошибка создания заказа:', e.message);
+        res.status(500).json({ error: e.message });
+    }
 });
 
 app.get(['/orders', '/api/orders'], checkAuth, (req, res) => safeQuery(res, () => prisma.order.findMany({ include: { items: { include: { dish: true } } }, orderBy: { createdAt: 'desc' } })));
@@ -260,6 +276,24 @@ app.post(['/metrics/adjust', '/api/metrics/adjust'], async (req, res) => {
     try {
         const { metricName, value, note } = req.body;
         await logAction('КОРРЕКТИРОВКА', `${metricName}: ${value} (${note})`, 'Руководитель');
+        res.json({ success: true });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+// --- PROMOS ---
+app.get(['/promos', '/api/promos'], (req, res) => safeQuery(res, () => prisma.promo.findMany({ where: { isActive: true }, orderBy: { createdAt: 'desc' } })));
+
+app.post(['/promos', '/api/promos'], checkAuth, async (req, res) => {
+    try {
+        const result = await prisma.promo.create({ data: req.body });
+        await logAction('НОВОЕ ПРОМО', `Добавлено промо: ${req.body.title || 'Без названия'}`, 'Админ');
+        res.json(result);
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
+});
+
+app.delete(['/promos/:id', '/api/promos/:id'], checkAuth, async (req, res) => {
+    try {
+        await prisma.promo.delete({ where: { id: req.params.id } });
         res.json({ success: true });
     } catch (e: any) { res.status(500).json({ error: e.message }); }
 });

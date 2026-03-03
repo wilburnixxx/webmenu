@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { menuService } from '../api';
 import {
     Plus, Trash2, DollarSign, Package,
-    X, Settings, GripVertical, Sparkles
+    X, Settings, GripVertical, Sparkles, Image as ImageIcon
 } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
@@ -12,7 +12,7 @@ const AdminDashboard = () => {
     const queryClient = useQueryClient();
     const [editingDish, setEditingDish] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<'dishes' | 'categories' | 'ai' | 'qr' | 'logs'>('dishes');
+    const [activeTab, setActiveTab] = useState<'dishes' | 'categories' | 'promo' | 'ai' | 'qr' | 'logs'>('dishes');
     const [aiPrompt, setAiPrompt] = useState('');
     const [qrData, setQrData] = useState({ table: '1', seats: '4' });
     const [copied, setCopied] = useState(false);
@@ -37,6 +37,12 @@ const AdminDashboard = () => {
         queryKey: ['ai-instructions'],
         queryFn: menuService.getAiInstructions,
         enabled: activeTab === 'ai'
+    });
+
+    const { data: promos } = useQuery({
+        queryKey: ['promos'],
+        queryFn: menuService.getPromos,
+        enabled: activeTab === 'promo'
     });
 
     useEffect(() => {
@@ -157,7 +163,7 @@ const AdminDashboard = () => {
                 </div>
 
                 <div style={{ display: 'flex', gap: '4px', background: 'var(--bg-secondary)', padding: '6px', borderRadius: '16px', overflowX: 'auto', maxWidth: '100%', scrollbarWidth: 'none' }}>
-                    {(['dishes', 'categories', 'ai', 'qr', 'logs'] as const).map((tab: string) => (
+                    {(['dishes', 'categories', 'promo', 'ai', 'qr', 'logs'] as const).map((tab: string) => (
                         <button key={tab}
                             onClick={() => setActiveTab(tab as any)}
                             style={{
@@ -285,6 +291,59 @@ const AdminDashboard = () => {
                                     </Reorder.Item>
                                 ))}
                             </Reorder.Group>
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* Promo Slider Tab */}
+                {activeTab === 'promo' && (
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ maxWidth: '900px', margin: '0 auto' }}>
+                        <div style={{ background: 'var(--bg-secondary)', borderRadius: '32px', padding: 'clamp(20px, 5vw, 48px)', border: '1px solid var(--border-color)', boxShadow: '0 12px 40px rgba(0,0,0,0.2)' }}>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '20px', marginBottom: '40px' }}>
+                                <div style={{ background: 'linear-gradient(135deg, var(--primary), #A855F7)', width: '64px', height: '64px', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                                    <ImageIcon size={36} />
+                                </div>
+                                <h2 style={{ margin: 0, fontSize: '28px', fontWeight: '900' }}>ПРОМО-АКЦИИ</h2>
+                            </div>
+
+                            <form onSubmit={(e: any) => {
+                                e.preventDefault();
+                                const formData = new FormData(e.target);
+                                queryClient.setMutationDefaults(['createPromo'], {
+                                    mutationFn: menuService.createPromo,
+                                    onSuccess: () => {
+                                        queryClient.invalidateQueries({ queryKey: ['promos'] });
+                                        e.target.reset();
+                                    }
+                                });
+                                const mutation = queryClient.getMutationCache().build(queryClient, { mutationKey: ['createPromo'] });
+                                mutation.execute({ title: formData.get('title'), imageUrl: formData.get('imageUrl') });
+                            }} style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '40px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                    <input name="title" placeholder="Заголовок акции (опц.)" required style={{ height: '56px', padding: '0 20px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', color: 'var(--text-primary)' }} />
+                                    <input name="imageUrl" placeholder="URL фото (1200x600)" required style={{ height: '56px', padding: '0 20px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', color: 'var(--text-primary)' }} />
+                                </div>
+                                <button type="submit" className="btn-primary" style={{ height: '56px', borderRadius: '16px' }}>ДОБАВИТЬ АКЦИЮ</button>
+                            </form>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+                                {promos ? (promos as any[]).map((p: any) => (
+                                    <div key={p.id} style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', aspectRatio: '2/1', border: '1px solid var(--border-color)' }}>
+                                        <img src={p.imageUrl} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)', display: 'flex', alignItems: 'flex-end', padding: '16px' }}>
+                                            <span style={{ color: 'white', fontWeight: '800', fontSize: '14px' }}>{p.title}</span>
+                                        </div>
+                                        <button onClick={() => {
+                                            queryClient.setMutationDefaults(['deletePromo'], {
+                                                mutationFn: menuService.deletePromo,
+                                                onSuccess: () => queryClient.invalidateQueries({ queryKey: ['promos'] })
+                                            });
+                                            const mutation = queryClient.getMutationCache().build(queryClient, { mutationKey: ['deletePromo'] });
+                                            mutation.execute(p.id);
+                                        }} style={{ position: 'absolute', top: '10px', right: '10px', background: 'rgba(255,59,48,0.9)', color: 'white', border: 'none', width: '32px', height: '32px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                                    </div>
+                                )) : <p style={{ opacity: 0.5 }}>Загрузка акций...</p>}
+                            </div>
                         </div>
                     </motion.div>
                 )}

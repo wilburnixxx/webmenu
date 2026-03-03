@@ -84,7 +84,11 @@ const CustomerMenu = () => {
             localStorage.setItem('activeOrderId', data.id);
             setIsStatusModalOpen(true);
         },
-        onError: () => alert('Ошибка при отправке заказа')
+        onError: (err: any) => {
+            console.error('Order Error:', err);
+            const msg = err.response?.data?.error || 'Ошибка при отправке заказа';
+            alert(`Ошибка: ${msg}`);
+        }
     });
 
     const callMutation = useMutation({
@@ -106,6 +110,21 @@ const CustomerMenu = () => {
         setCallMessage(message);
         callMutation.mutate(type);
     };
+
+    const { data: promos } = useQuery({
+        queryKey: ['promos'],
+        queryFn: menuService.getPromos
+    });
+
+    const [currentPromo, setCurrentPromo] = useState(0);
+    useEffect(() => {
+        if (promos && promos.length > 0) {
+            const timer = setInterval(() => {
+                setCurrentPromo(prev => (prev + 1) % promos.length);
+            }, 5000);
+            return () => clearInterval(timer);
+        }
+    }, [promos]);
 
     const handleCheckout = () => {
         if (cart.length === 0) return;
@@ -238,14 +257,62 @@ const CustomerMenu = () => {
                 </div>
             </header>
 
+            {/* Promo Hero Slider */}
+            {promos && promos.length > 0 && (
+                <div style={{ padding: '16px', paddingBottom: 0 }}>
+                    <div style={{
+                        position: 'relative', height: '180px', borderRadius: '24px',
+                        overflow: 'hidden', border: '1px solid var(--border-color)',
+                        background: 'var(--bg-secondary)'
+                    }}>
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={currentPromo}
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                style={{ position: 'absolute', inset: 0 }}
+                            >
+                                <img
+                                    src={promos[currentPromo].imageUrl}
+                                    alt={promos[currentPromo].title}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                />
+                                <div style={{
+                                    position: 'absolute', inset: 0,
+                                    background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
+                                    display: 'flex', alignItems: 'flex-end', padding: '20px'
+                                }}>
+                                    <span style={{ color: 'white', fontSize: '18px', fontWeight: '900', letterSpacing: '-0.5px' }}>
+                                        {promos[currentPromo].title}
+                                    </span>
+                                </div>
+                            </motion.div>
+                        </AnimatePresence>
+
+                        {/* Dots */}
+                        <div style={{ position: 'absolute', bottom: '12px', right: '20px', display: 'flex', gap: '6px' }}>
+                            {promos.map((_: any, idx: number) => (
+                                <div key={idx} style={{
+                                    width: '6px', height: '6px', borderRadius: '3px',
+                                    background: idx === currentPromo ? 'var(--primary)' : 'rgba(255,255,255,0.3)',
+                                    transition: 'all 0.3s'
+                                }} />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Quick Actions Bar */}
             <div style={{
-                display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px',
-                padding: '12px 16px', background: 'rgba(10, 10, 11, 0.7)',
+                display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '4px',
+                padding: '12px 8px', background: 'rgba(10, 10, 11, 0.7)',
                 position: 'sticky', top: 'calc(56px + env(safe-area-inset-top, 0px))', zIndex: 998,
                 borderBottom: '1px solid var(--border-color)', backdropFilter: 'blur(20px)'
             }}>
-                <ActionButton icon={<Sparkles size={18} />} label="МАСТЕР" onClick={() => setIsAiOpen(true)} />
+                <ActionButton icon={<Sparkles size={18} />} label="ИИ-СОВЕТ" onClick={() => setIsAiOpen(true)} />
+                <ActionButton icon={<Bell size={18} />} label="МАСТЕР" onClick={() => handleCallAction('MASTER', 'Мастер скоро подойдет! 💨')} active={isCalling} />
                 <ActionButton icon={<Flame size={18} />} label="УГЛИ" onClick={() => handleCallAction('COALS', 'Угли уже в пути! 🔥')} active={isCalling} />
                 <ActionButton icon={<GripVertical size={18} />} label="ТАБАК" onClick={() => handleCallAction('TOBACCO', 'Сейчас заменим табак! 🍃')} active={isCalling} />
                 <ActionButton icon={<Zap size={18} />} label="КАЛЬЯН" onClick={() => handleCallAction('HOOKAH_CHANGE', 'Готовим новый кальян! 🌬️')} active={isCalling} />

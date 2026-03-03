@@ -91,3 +91,11 @@ model StaffCall {
   createdAt   DateTime @default(now())
   type        String   @default("MASTER")
 }
+
+model Promo {
+  id        String   @id @default(uuid())
+  imageUrl  String
+  title     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
