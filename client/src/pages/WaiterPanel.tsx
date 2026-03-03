@@ -1,8 +1,51 @@
-import { useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { orderService, menuService, callService } from '../api';
-import { CheckCircle, Clock, Wind, XCircle, Archive, Layout, Bell } from 'lucide-react';
+import { orderService, callService } from '../api';
+import { CheckCircle, Clock, Wind, XCircle, Archive, Layout, Bell, Package, BellRing } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+const PurgeTimer = ({ startTime }: { startTime: string }) => {
+    const [timeLeft, setTimeLeft] = useState(0);
+
+    useEffect(() => {
+        const calculateTimeLeft = () => {
+            const start = new Date(startTime).getTime();
+            const now = new Date().getTime();
+            const expiration = start + (20 * 60 * 1000); // 20 minutes
+            const remaining = Math.max(0, Math.floor((expiration - now) / 1000));
+            setTimeLeft(remaining);
+        };
+
+        calculateTimeLeft();
+        const interval = setInterval(calculateTimeLeft, 1000);
+        return () => clearInterval(interval);
+    }, [startTime]);
+
+    const minutes = Math.floor(timeLeft / 60);
+    const seconds = timeLeft % 60;
+
+    if (timeLeft <= 0) return null;
+
+    return (
+        <div style={{
+            background: 'var(--primary)',
+            color: 'white',
+            padding: '12px 20px',
+            borderRadius: '16px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '10px',
+            fontWeight: '900',
+            fontSize: '14px',
+            boxShadow: '0 8px 25px rgba(168, 85, 247, 0.4)',
+            marginBottom: '20px'
+        }}>
+            <BellRing size={18} />
+            ДО ПРОДУВКИ: {minutes}:{seconds < 10 ? `0${seconds}` : seconds} МИН
+        </div>
+    );
+};
 
 const statusMap: Record<string, { label: string, color: string, icon: any }> = {
     ACCEPTED: { label: 'ГОТОВИТСЯ', color: '#A855F7', icon: <Wind size={18} /> },
@@ -22,10 +65,6 @@ const WaiterPanel = () => {
         refetchInterval: 5000,
     });
 
-    const { data: dishes } = useQuery({
-        queryKey: ['menu'],
-        queryFn: menuService.getMenu
-    });
 
     const { data: activeCalls } = useQuery({
         queryKey: ['calls'],
@@ -185,95 +224,145 @@ const WaiterPanel = () => {
             {/* Main Order Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 'clamp(16px, 3vw, 32px)' }}>
                 <AnimatePresence>
-                    {activeOrders?.map((order: any) => (
-                        <motion.div
-                            key={order.id}
-                            layout
-                            initial={{ scale: 0.95, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.95, opacity: 0 }}
-                            className="card"
-                            style={{
-                                padding: 'clamp(20px, 3vw, 32px)',
-                                display: 'flex', flexDirection: 'column',
-                                borderTop: `6px solid ${statusMap[order.status]?.color || 'var(--border-color)'}`,
-                                position: 'relative'
-                            }}
-                        >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '32px', alignItems: 'flex-start' }}>
-                                <div>
-                                    <h2 style={{ fontSize: '28px', fontWeight: '950', margin: 0, letterSpacing: '-1px' }}>Стол {order.tableNumber}</h2>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: '800', opacity: 0.4, letterSpacing: '1px' }}>
-                                        <div className="status-indicator" style={{ width: '6px', height: '6px' }} />
-                                        <span>#{order.id.slice(0, 8).toUpperCase()}</span>
-                                    </div>
-                                </div>
-                                <div style={{ textAlign: 'right' }}>
-                                    <div style={{ background: 'var(--bg-secondary)', padding: '10px 16px', borderRadius: '14px', fontSize: '14px', fontWeight: '900', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}>
+                    {activeOrders?.map((order: any) => {
+                        // Extract hookahs from structured comments
+                        const hookahLines = (order.comments || '').split('\n').filter((l: string) => l.startsWith('[HOOKAH]'));
+                        const hookahs = hookahLines.map((line: string) => {
+                            const details = line.replace('[HOOKAH] ', '');
+                            const liquid = details.match(/Наполнение: (.*?)(,|$)/)?.[1] || 'Вода';
+                            const tobacco = details.match(/Табак: (.*?)(,|$)/)?.[1] || 'Неизвестно';
+                            const strength = details.match(/Крепость: (.*?)\/10/)?.[1] || '?';
+                            return { liquid, tobacco, strength };
+                        });
+
+                        // Filter other products from Menu category
+                        const menuProducts = order.items.filter((it: any) => it.dish?.category === 'Меню');
+
+                        // Extract user note
+                        const noteMatch = (order.comments || '').match(/ЗАМЕТКА: (.*)(\n|$)/);
+                        const userNote = noteMatch?.[1]?.trim();
+
+                        return (
+                            <motion.div
+                                key={order.id}
+                                layout
+                                initial={{ scale: 0.95, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.95, opacity: 0 }}
+                                className="card"
+                                style={{
+                                    padding: '24px',
+                                    display: 'flex', flexDirection: 'column',
+                                    borderTop: `6px solid ${statusMap[order.status]?.color || 'var(--border-color)'}`,
+                                    position: 'relative',
+                                    height: 'fit-content'
+                                }}
+                            >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px', alignItems: 'center' }}>
+                                    <h2 style={{ fontSize: '32px', fontWeight: '950', margin: 0, letterSpacing: '-1.5px' }}>Стол {order.tableNumber}</h2>
+                                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '8px 16px', borderRadius: '12px', fontSize: '13px', fontWeight: '800', opacity: 0.6 }}>
                                         {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </div>
                                 </div>
-                            </div>
 
-                            <div style={{ flex: 1, marginBottom: '32px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                {order.items.map((item: any, idx: number) => {
-                                    const dishName = (dishes as any[])?.find(d => d.id === item.dishId)?.name || ` Dish ${item.dishId.slice(0, 4)}`;
-                                    return (
-                                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '16px', alignItems: 'center' }}>
-                                            <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
-                                                <div style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', borderRadius: '10px', fontSize: '13px', fontWeight: '950', boxShadow: '0 4px 12px rgba(255,107,53,0.2)' }}>{item.quantity}</div>
-                                                <span style={{ fontWeight: '800', fontSize: '15px' }}>{dishName}</span>
-                                            </div>
-                                            <span className="price-mono" style={{ opacity: 0.5, fontSize: '14px' }}>{item.price * item.quantity} ₸</span>
+                                {/* Hookah Section - FIRST */}
+                                {hookahs.length > 0 && (
+                                    <div style={{ marginBottom: '24px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: 'var(--primary)' }}>
+                                            <Wind size={18} />
+                                            <span style={{ fontSize: '12px', fontWeight: '900', letterSpacing: '1px' }}>СОСТАВ КАЛЬЯНА:</span>
                                         </div>
-                                    );
-                                })}
-                            </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                            {hookahs.map((h: any, idx: number) => {
+                                                const matchedItem = order.items.find((it: any) => it.dish?.name === `Hookah: ${h.tobacco}`);
+                                                return (
+                                                    <div key={idx} style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', padding: '12px', background: 'rgba(168, 85, 247, 0.05)', borderRadius: '16px', border: '1px solid rgba(168, 85, 247, 0.1)', alignItems: 'center' }}>
+                                                        <div style={{ background: 'var(--bg-tertiary)', padding: '8px 12px', borderRadius: '10px', border: '1px solid var(--border-color)', fontSize: '13px', fontWeight: '800' }}>{h.liquid}</div>
+                                                        <div style={{ background: 'var(--bg-tertiary)', padding: '8px 12px', borderRadius: '10px', border: '1px solid var(--border-color)', fontSize: '13px', fontWeight: '800' }}>{h.tobacco}</div>
+                                                        <div style={{ background: 'var(--bg-tertiary)', padding: '8px 12px', borderRadius: '10px', border: '1px solid var(--border-color)', fontSize: '13px', fontWeight: '800' }}>Крепость: {h.strength}/10</div>
+                                                        {matchedItem && <div style={{ marginLeft: 'auto', color: 'var(--primary)', fontWeight: '950', fontSize: '15px' }}>{matchedItem.price} ₸</div>}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
 
-                            {order.comments && (
-                                <div style={{ background: 'rgba(255, 107, 53, 0.08)', padding: '16px 20px', borderRadius: '18px', marginBottom: '32px', border: '1px solid rgba(255, 107, 53, 0.1)' }}>
-                                    <p style={{ margin: 0, fontSize: '11px', fontWeight: '900', color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px' }}>КОММЕНТАРИЙ ГОСТЯ:</p>
-                                    <p style={{ margin: 0, fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', fontStyle: 'italic', lineHeight: '1.5' }}>"{order.comments}"</p>
+                                {/* Other Products Section - SECOND */}
+                                {menuProducts.length > 0 && (
+                                    <div style={{ marginBottom: '24px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px', color: 'var(--text-secondary)' }}>
+                                            <Package size={18} />
+                                            <span style={{ fontSize: '12px', fontWeight: '900', letterSpacing: '1px' }}>ПРОЧИЕ ТОВАРЫ:</span>
+                                        </div>
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            {menuProducts.map((it: any, idx: number) => (
+                                                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', background: 'var(--bg-tertiary)', padding: '12px 16px', borderRadius: '14px', border: '1px solid var(--border-color)', alignItems: 'center' }}>
+                                                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                                        <span style={{ fontWeight: '800' }}>{it.dish?.name || 'Товар'}</span>
+                                                        <span style={{ opacity: 0.5, fontWeight: '900', fontSize: '12px' }}>x{it.quantity}</span>
+                                                    </div>
+                                                    <span style={{ color: 'var(--primary)', fontWeight: '900' }}>{it.price * it.quantity} ₸</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* User Comment */}
+                                {userNote && (
+                                    <div style={{ background: 'rgba(255, 107, 53, 0.05)', padding: '16px 20px', borderRadius: '20px', marginBottom: '24px', border: '1px solid rgba(255, 107, 53, 0.1)' }}>
+                                        <p style={{ margin: 0, fontSize: '10px', fontWeight: '900', color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>КОММЕНТАРИЙ:</p>
+                                        <p style={{ margin: 0, fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', fontStyle: 'italic', lineHeight: '1.5' }}>"{userNote}"</p>
+                                    </div>
+                                )}
+
+                                {/* Total Price - ADDED */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', padding: '20px 4px 0 4px', borderTop: '1px solid var(--border-color)' }}>
+                                    <span style={{ fontSize: '14px', fontWeight: '900', opacity: 0.5 }}>ИТОГО К ОПЛАТЕ:</span>
+                                    <span style={{ fontSize: '26px', fontWeight: '950', color: 'var(--primary)' }}>{order.totalPrice} ₸</span>
                                 </div>
-                            )}
 
-                            <div style={{ padding: '24px 0', borderTop: '1px solid var(--border-color)', marginBottom: '32px' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <span style={{ fontSize: '12px', fontWeight: '950', color: 'var(--text-tertiary)', letterSpacing: '1px' }}>ИТОГО К ОПЛАТЕ</span>
-                                    <span className="price-mono" style={{ fontSize: '28px', color: 'var(--primary)', fontWeight: '950' }}>{order.totalPrice} ₸</span>
+                                {/* Purge Timer */}
+                                {order.status === 'READY' && <PurgeTimer startTime={order.updatedAt} />}
+
+                                {/* Action Buttons */}
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', marginBottom: '16px' }}>
+                                    {['ACCEPTED', 'READY', 'CANCELLED'].map(s => (
+                                        <button
+                                            key={s}
+                                            onClick={() => statusMutation.mutate({ orderId: order.id, status: s })}
+                                            style={{
+                                                padding: '12px 6px', borderRadius: '16px', cursor: 'pointer',
+                                                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px',
+                                                background: order.status === s ? statusMap[s].color : 'var(--bg-secondary)',
+                                                border: 'none',
+                                                color: order.status === s ? 'white' : 'var(--text-tertiary)',
+                                                transition: 'all 0.2s',
+                                                fontWeight: '900', fontSize: '10px'
+                                            }}
+                                        >
+                                            <span style={{ opacity: 0.8 }}>{statusMap[s].icon}</span>
+                                            {statusMap[s].label}
+                                        </button>
+                                    ))}
                                 </div>
-                            </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' }}>
-                                {Object.entries(statusMap).filter(([s]) => s !== 'ARCHIVED').map(([status, config]) => (
-                                    <button
-                                        key={status}
-                                        onClick={() => statusMutation.mutate({ orderId: order.id, status })}
-                                        style={{
-                                            padding: '16px 8px', borderRadius: '18px', cursor: 'pointer',
-                                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px',
-                                            background: order.status === status ? config.color : 'var(--bg-secondary)',
-                                            border: 'none',
-                                            color: order.status === status ? 'white' : 'var(--text-secondary)',
-                                            boxShadow: order.status === status ? `0 8px 20px ${config.color}30` : 'none',
-                                            transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)'
-                                        }}
-                                    >
-                                        <span style={{ opacity: 0.9 }}>{config.icon}</span>
-                                        <span style={{ fontSize: '11px', fontWeight: '900', letterSpacing: '0.5px' }}>{config.label}</span>
-                                    </button>
-                                ))}
-                            </div>
-
-                            <button
-                                onClick={() => statusMutation.mutate({ orderId: order.id, status: 'ARCHIVED' })}
-                                className="btn-primary"
-                                style={{ width: '100%', height: '72px', fontSize: '15px', fontWeight: '950', background: 'var(--success)', color: 'white', border: 'none', borderRadius: '24px', boxShadow: '0 12px 35px rgba(74,222,128,0.25)', letterSpacing: '0.5px' }}
-                            >
-                                <Archive size={22} style={{ marginRight: '12px' }} /> ОПЛАЧЕНО И В АРХИВ
-                            </button>
-                        </motion.div>
-                    ))}
+                                <button
+                                    onClick={() => statusMutation.mutate({ orderId: order.id, status: 'ARCHIVED' })}
+                                    style={{
+                                        width: '100%', height: '60px', borderRadius: '18px',
+                                        background: 'var(--success)', color: 'white', border: 'none',
+                                        fontWeight: '950', fontSize: '14px', display: 'flex',
+                                        alignItems: 'center', justifyContent: 'center', gap: '10px',
+                                        cursor: 'pointer', boxShadow: '0 8px 30px rgba(16, 185, 129, 0.25)'
+                                    }}
+                                >
+                                    <Archive size={20} /> ОПЛАЧЕНО И В АРХИВ
+                                </button>
+                            </motion.div>
+                        );
+                    })}
                 </AnimatePresence>
             </div>
 

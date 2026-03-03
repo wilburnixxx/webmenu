@@ -120,11 +120,19 @@ const CustomerMenu = () => {
     const handleCheckout = () => {
         if (cart.length === 0) return;
 
-        // Merge items + user comment
-        const itemsList = cart.map(item => `- ${item.dish.name}: ${item.dish.description}`).join('\n');
-        const finalComments = orderComment.trim()
-            ? `КОММЕНТАРИЙ ГОСТЯ: ${orderComment}\n\nСОСТАВ ЗАКАЗА:\n${itemsList}`
-            : itemsList;
+        // Structured hookah info for the master
+        const hookahConfigs = cart
+            .filter(item => item.dish.name.startsWith('Hookah: '))
+            .map(item => {
+                const tobacco = item.dish.name.replace('Hookah: ', '');
+                return `[HOOKAH] ${item.dish.description}, Табак: ${tobacco}`;
+            })
+            .join('\n');
+
+        const finalComments = [
+            orderComment.trim() ? `ЗАМЕТКА: ${orderComment}` : '',
+            hookahConfigs
+        ].filter(Boolean).join('\n\n');
 
         orderMutation.mutate({
             tableNumber,
@@ -593,12 +601,67 @@ const CustomerMenu = () => {
                     <div style={{ position: 'fixed', inset: 0, zIndex: 6000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsStatusModalOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(12px)' }} />
                         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-                            style={{ width: '100%', maxWidth: '400px', background: 'var(--bg-secondary)', borderRadius: '32px', padding: '32px', textAlign: 'center', position: 'relative', zIndex: 6001, border: '1px solid var(--border-color)' }}
+                            style={{ width: '100%', maxWidth: '400px', background: 'var(--bg-secondary)', borderRadius: '32px', padding: '32px', textAlign: 'center', position: 'relative', zIndex: 6001, border: '1px solid var(--border-color)', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}
                         >
-                            <div style={{ background: 'var(--success)', width: '64px', height: '64px', borderRadius: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', color: 'white' }}><CheckCircle size={32} /></div>
+                            <div style={{ background: 'var(--success)', width: '64px', height: '64px', borderRadius: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px', color: 'white', flexShrink: 0 }}><CheckCircle size={32} /></div>
                             <h2 style={{ fontSize: '24px', fontWeight: '900', marginBottom: '8px' }}>Заказ №{activeOrder.id.slice(0, 5).toUpperCase()}</h2>
-                            <p style={{ color: 'var(--text-tertiary)', marginBottom: '32px' }}>Статус: {statusMap[activeOrder.status]?.label}</p>
-                            <button onClick={() => setIsStatusModalOpen(false)} className="btn-primary" style={{ width: '100%', height: '52px', borderRadius: '14px' }}>ПОНЯТНО</button>
+                            <p style={{ color: 'var(--text-tertiary)', marginBottom: '16px', fontSize: '14px', fontWeight: '800' }}>Статус: <span style={{ color: statusMap[activeOrder.status]?.color || 'var(--primary)' }}>{statusMap[activeOrder.status]?.label}</span></p>
+
+                            <div style={{ flex: 1, overflowY: 'auto', background: 'rgba(0,0,0,0.2)', borderRadius: '20px', padding: '16px', marginBottom: '24px', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                {(() => {
+                                    // Parse hookahs from structured comments
+                                    const hookahLines = (activeOrder.comments || '').split('\n').filter((l: string) => l.startsWith('[HOOKAH]'));
+                                    const hookahs = hookahLines.map((line: string) => {
+                                        const details = line.replace('[HOOKAH] ', '');
+                                        const liquid = details.match(/Наполнение: (.*?)(,|$)/)?.[1] || 'Вода';
+                                        const taste = details.match(/Табак: (.*?)(,|$)/)?.[1] || 'Неизвестно';
+                                        const strength = details.match(/Крепость: (.*?)\/10/)?.[1] || '?';
+
+                                        // Try to find price in items (hookah price is combined tobacco + liquid)
+                                        const matchedItem = (activeOrder.items as any[])?.find(it => it.dish?.name === taste);
+                                        return { taste, liquid, strength, price: matchedItem?.price || 0 };
+                                    });
+
+                                    const menuProducts = (activeOrder.items as any[])?.filter(it => it.dish?.category === 'Меню');
+
+                                    return (
+                                        <>
+                                            {hookahs.length > 0 && (
+                                                <div>
+                                                    <p style={{ fontSize: '10px', fontWeight: '900', opacity: 0.5, marginBottom: '8px', letterSpacing: '1px' }}>СОСТАВ КАЛЬЯНА:</p>
+                                                    {hookahs.map((h: any, idx: number) => (
+                                                        <div key={idx} style={{ marginBottom: '16px' }}>
+                                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', padding: '10px', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', position: 'relative' }}>
+                                                                <div style={{ background: 'var(--bg-tertiary)', padding: '6px 10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '12px', fontWeight: '800' }}>{h.liquid}</div>
+                                                                <div style={{ background: 'var(--bg-tertiary)', padding: '6px 10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '12px', fontWeight: '800' }}>{h.taste}</div>
+                                                                <div style={{ background: 'var(--bg-tertiary)', padding: '6px 10px', borderRadius: '8px', border: '1px solid var(--border-color)', fontSize: '12px', fontWeight: '800' }}>Крепость: {h.strength}/10</div>
+                                                                {h.price > 0 && <div style={{ marginLeft: 'auto', color: 'var(--primary)', fontWeight: '950', fontSize: '14px', alignSelf: 'center' }}>{h.price} ₸</div>}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {menuProducts.length > 0 && (
+                                                <div>
+                                                    <p style={{ fontSize: '10px', fontWeight: '900', opacity: 0.5, marginBottom: '8px', letterSpacing: '1px' }}>ПРОЧИЕ ТОВАРЫ:</p>
+                                                    {menuProducts.map((it, idx) => (
+                                                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                                                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                                                <span style={{ fontSize: '13px', fontWeight: '800' }}>{it.dish?.name || 'Товар'}</span>
+                                                                <span style={{ fontSize: '11px', opacity: 0.4, fontWeight: '900' }}>x{it.quantity}</span>
+                                                            </div>
+                                                            <span style={{ fontSize: '13px', fontWeight: '900', color: 'var(--primary)' }}>{it.price * it.quantity} ₸</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </>
+                                    );
+                                })()}
+                            </div>
+
+                            <button onClick={() => setIsStatusModalOpen(false)} className="btn-primary" style={{ width: '100%', height: '56px', borderRadius: '16px', flexShrink: 0 }}>ПОНЯТНО</button>
                         </motion.div>
                     </div>
                 )}

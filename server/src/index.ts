@@ -219,7 +219,10 @@ app.post(['/orders', '/api/orders'], async (req, res) => {
 });
 
 app.get(['/orders', '/api/orders'], checkAuth, (req, res) => safeQuery(res, () => prisma.order.findMany({ include: { items: { include: { dish: true } } }, orderBy: { createdAt: 'desc' } })));
-app.get(['/orders/:id', '/api/orders/:id'], checkAuth, (req, res) => safeQuery(res, () => prisma.order.findUnique({ where: { id: req.params.id }, include: { items: { include: { dish: true } } } })));
+
+// GET /orders/:id allowed for guests to poll status
+app.get(['/orders/:id', '/api/orders/:id'], (req, res) => safeQuery(res, () => prisma.order.findUnique({ where: { id: req.params.id }, include: { items: { include: { dish: true } } } })));
+
 app.patch(['/orders/:id', '/api/orders/:id'], checkAuth, async (req, res) => {
     const result = await prisma.order.update({ where: { id: req.params.id }, data: { status: req.body.status } });
     await logAction('СТАТУС ЗАКАЗА', `Заказ ${result.id.slice(0, 5)} -> ${req.body.status}`, 'Официант');
