@@ -224,7 +224,7 @@ const WaiterPanel = () => {
                                                 <div style={{ background: 'var(--primary)', color: 'white', padding: '6px 12px', borderRadius: '10px', fontSize: '13px', fontWeight: '950', boxShadow: '0 4px 12px rgba(255,107,53,0.2)' }}>{item.quantity}</div>
                                                 <span style={{ fontWeight: '800', fontSize: '15px' }}>{dishName}</span>
                                             </div>
-                                            <span className="price-mono" style={{ opacity: 0.5, fontSize: '14px' }}>{item.price * item.quantity} ₽</span>
+                                            <span className="price-mono" style={{ opacity: 0.5, fontSize: '14px' }}>{item.price * item.quantity} ₸</span>
                                         </div>
                                     );
                                 })}
@@ -240,7 +240,7 @@ const WaiterPanel = () => {
                             <div style={{ padding: '24px 0', borderTop: '1px solid var(--border-color)', marginBottom: '32px' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <span style={{ fontSize: '12px', fontWeight: '950', color: 'var(--text-tertiary)', letterSpacing: '1px' }}>ИТОГО К ОПЛАТЕ</span>
-                                    <span className="price-mono" style={{ fontSize: '28px', color: 'var(--primary)', fontWeight: '950' }}>{order.totalPrice} ₽</span>
+                                    <span className="price-mono" style={{ fontSize: '28px', color: 'var(--primary)', fontWeight: '950' }}>{order.totalPrice} ₸</span>
                                 </div>
                             </div>
 

@@ -192,7 +192,7 @@ const AdminDashboard = () => {
             {/* Admin Stats Row (Responsive) */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginBottom: '40px' }}>
                 <AdminStatCard title="Заказов за смену" value={metrics?.totalOrders || 0} icon={<Package />} color="#3B82F6" />
-                <AdminStatCard title="Общая выручка" value={`${(metrics?.totalRevenue || 0).toLocaleString()} ₽`} icon={<DollarSign />} color="#4ADE80" onClick={() => { setAdjData({ metricName: 'Volume', value: 0, note: '' }); setIsAdjusting(true); }} />
+                <AdminStatCard title="Общая выручка" value={`${(metrics?.totalRevenue || 0).toLocaleString()} ₸`} icon={<DollarSign />} color="#4ADE80" onClick={() => { setAdjData({ metricName: 'Volume', value: 0, note: '' }); setIsAdjusting(true); }} />
             </div>
 
             {/* Tab Contents */}
@@ -210,7 +210,7 @@ const AdminDashboard = () => {
                                 <div style={{ padding: '24px', flex: 1, display: 'flex', flexDirection: 'column' }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', alignItems: 'baseline' }}>
                                         <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800' }}>{dish.name}</h3>
-                                        <span className="price-mono" style={{ fontSize: '18px' }}>{dish.price} ₽</span>
+                                        <span className="price-mono" style={{ fontSize: '18px' }}>{dish.price} ₸</span>
                                     </div>
                                     <p className="body-small truncate-3" style={{ color: 'var(--text-tertiary)', marginBottom: '24px', flex: 1 }}>{dish.description}</p>
                                     <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
@@ -518,7 +518,7 @@ const AdminDashboard = () => {
 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                        <label style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-secondary)' }}>Стоимость (₽)</label>
+                                        <label style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-secondary)' }}>Стоимость (₸)</label>
                                         <input type="number" value={editingDish.price} onChange={e => setEditingDish({ ...editingDish, price: Number(e.target.value) })} style={{ height: '52px', padding: '0 20px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', fontSize: '18px', fontWeight: '900' }} required />
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

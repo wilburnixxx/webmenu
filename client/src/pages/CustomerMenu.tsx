@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { menuService, orderService, callService } from '../api';
-import { ShoppingBag, Send, X, Bell, Flame, Wind, Zap, CheckCircle, Clock, XCircle, Archive, Trash2, GripVertical, Sparkles, User, Package } from 'lucide-react';
+import { ShoppingBag, Send, X, Bell, Flame, Wind, Zap, CheckCircle, Clock, XCircle, Archive, Trash2, GripVertical, Sparkles, User, Package, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 
@@ -111,26 +111,20 @@ const CustomerMenu = () => {
         callMutation.mutate(type);
     };
 
+    const [orderComment, setOrderComment] = useState('');
     const { data: promos } = useQuery({
         queryKey: ['promos'],
         queryFn: menuService.getPromos
     });
 
-    const [currentPromo, setCurrentPromo] = useState(0);
-    useEffect(() => {
-        if (promos && promos.length > 0) {
-            const timer = setInterval(() => {
-                setCurrentPromo(prev => (prev + 1) % promos.length);
-            }, 5000);
-            return () => clearInterval(timer);
-        }
-    }, [promos]);
-
     const handleCheckout = () => {
         if (cart.length === 0) return;
 
-        // Merge all item descriptions into a single comment for the Master
-        const mergedComments = cart.map(item => `- ${item.dish.name}: ${item.dish.description}`).join('\n');
+        // Merge items + user comment
+        const itemsList = cart.map(item => `- ${item.dish.name}: ${item.dish.description}`).join('\n');
+        const finalComments = orderComment.trim()
+            ? `КОММЕНТАРИЙ ГОСТЯ: ${orderComment}\n\nСОСТАВ ЗАКАЗА:\n${itemsList}`
+            : itemsList;
 
         orderMutation.mutate({
             tableNumber,
@@ -140,7 +134,7 @@ const CustomerMenu = () => {
                 quantity: item.quantity,
                 price: item.dish.price
             })),
-            comments: mergedComments
+            comments: finalComments
         });
     };
 
@@ -257,50 +251,28 @@ const CustomerMenu = () => {
                 </div>
             </header>
 
-            {/* Promo Hero Slider */}
+            {/* Horizontal Promo Gallery */}
             {promos && promos.length > 0 && (
-                <div style={{ padding: '16px', paddingBottom: 0 }}>
-                    <div style={{
-                        position: 'relative', height: '180px', borderRadius: '24px',
-                        overflow: 'hidden', border: '1px solid var(--border-color)',
-                        background: 'var(--bg-secondary)'
-                    }}>
-                        <AnimatePresence mode="wait">
-                            <motion.div
-                                key={currentPromo}
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                style={{ position: 'absolute', inset: 0 }}
-                            >
-                                <img
-                                    src={promos[currentPromo].imageUrl}
-                                    alt={promos[currentPromo].title}
-                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                />
-                                <div style={{
-                                    position: 'absolute', inset: 0,
-                                    background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
-                                    display: 'flex', alignItems: 'flex-end', padding: '20px'
-                                }}>
-                                    <span style={{ color: 'white', fontSize: '18px', fontWeight: '900', letterSpacing: '-0.5px' }}>
-                                        {promos[currentPromo].title}
-                                    </span>
-                                </div>
-                            </motion.div>
-                        </AnimatePresence>
-
-                        {/* Dots */}
-                        <div style={{ position: 'absolute', bottom: '12px', right: '20px', display: 'flex', gap: '6px' }}>
-                            {promos.map((_: any, idx: number) => (
-                                <div key={idx} style={{
-                                    width: '6px', height: '6px', borderRadius: '3px',
-                                    background: idx === currentPromo ? 'var(--primary)' : 'rgba(255,255,255,0.3)',
-                                    transition: 'all 0.3s'
-                                }} />
-                            ))}
+                <div style={{ padding: '24px 16px 8px', overflowX: 'auto', display: 'flex', gap: '16px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                    {promos.map((p: any) => (
+                        <div key={p.id} style={{
+                            minWidth: '280px', height: '160px', borderRadius: '24px',
+                            overflow: 'hidden', border: '1px solid var(--border-color)',
+                            background: 'var(--bg-secondary)', position: 'relative',
+                            boxShadow: '0 8px 24px rgba(0,0,0,0.15)'
+                        }}>
+                            <img src={p.imageUrl} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <div style={{
+                                position: 'absolute', inset: 0,
+                                background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
+                                display: 'flex', alignItems: 'flex-end', padding: '16px'
+                            }}>
+                                <span style={{ color: 'white', fontSize: '15px', fontWeight: '800' }}>
+                                    {p.title}
+                                </span>
+                            </div>
                         </div>
-                    </div>
+                    ))}
                 </div>
             )}
 
@@ -318,21 +290,6 @@ const CustomerMenu = () => {
                 <ActionButton icon={<Zap size={18} />} label="КАЛЬЯН" onClick={() => handleCallAction('HOOKAH_CHANGE', 'Готовим новый кальян! 🌬️')} active={isCalling} />
             </div>
 
-            {/* Floating AI Consultant Widget */}
-            <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setIsAiOpen(true)}
-                style={{
-                    position: 'fixed', bottom: '100px', right: '20px', zIndex: 2000,
-                    width: '64px', height: '64px', borderRadius: '32px',
-                    background: 'var(--primary)', color: 'white', border: 'none',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    boxShadow: '0 12px 32px rgba(168, 85, 247, 0.4)', cursor: 'pointer'
-                }}
-            >
-                <Sparkles size={30} />
-            </motion.button>
 
             {/* Active Order Banner */}
             <AnimatePresence>
@@ -371,13 +328,25 @@ const CustomerMenu = () => {
             {/* Content Area */}
             <main style={{ padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
 
-                {/* Hookah Constructor Section */}
-                <section className="card" style={{ padding: '24px', background: 'var(--bg-secondary)', borderRadius: '32px', border: '1px solid var(--border-color)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-                        <div style={{ background: 'var(--primary)', padding: '10px', borderRadius: '14px', color: 'white' }}>
-                            <Wind size={20} />
+                <section className="card" style={{ padding: '24px', background: 'var(--bg-secondary)', borderRadius: '32px', border: '1px solid var(--border-color)', boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div style={{ background: 'var(--primary)', padding: '10px', borderRadius: '14px', color: 'white' }}>
+                                <Wind size={20} />
+                            </div>
+                            <h2 style={{ fontSize: '20px', margin: 0, fontWeight: '900' }}>КОНСТРУКТОР</h2>
                         </div>
-                        <h2 style={{ fontSize: '20px', margin: 0, fontWeight: '900' }}>КОНСТРУКТОР</h2>
+                        <button
+                            onClick={() => setIsAiOpen(true)}
+                            style={{
+                                background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)',
+                                padding: '8px 12px', borderRadius: '12px', color: 'var(--primary)',
+                                display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: '900',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            <Sparkles size={14} /> ПОМОЩЬ ИИ
+                        </button>
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -453,9 +422,59 @@ const CustomerMenu = () => {
                             className="btn-primary"
                             style={{ width: '100%', height: '56px', borderRadius: '16px', marginTop: '12px' }}
                         >
-                            ДОБАВИТЬ В КОРЗИНУ ({(selectedTobacco?.price || 0) + (selectedLiquid?.price || 0)} ₽)
+                            ДОБАВИТЬ В КОРЗИНУ ({(selectedTobacco?.price || 0) + (selectedLiquid?.price || 0)} ₸)
                         </button>
                     </div>
+                </section>
+
+                {/* Other Categories Section */}
+                {dishes?.some(d => d.category === 'Меню') && (
+                    <section>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+                            <div style={{ background: 'var(--primary)', padding: '8px', borderRadius: '12px', color: 'white' }}>
+                                <Package size={18} />
+                            </div>
+                            <h2 style={{ fontSize: '18px', margin: 0, fontWeight: '900' }}>ДРУГИЕ ТОВАРЫ</h2>
+                        </div>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                            {dishes?.filter(d => d.category === 'Меню').map((item: any) => (
+                                <div key={item.id} style={{ background: 'var(--bg-secondary)', borderRadius: '24px', padding: '16px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                    <div style={{ flex: 1 }}>
+                                        <h3 style={{ fontSize: '14px', fontWeight: '800', margin: 0 }}>{item.name}</h3>
+                                        <p style={{ fontSize: '11px', opacity: 0.6, marginTop: '4px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.description}</p>
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontWeight: '900', color: 'var(--primary)', fontSize: '14px' }}>{item.price} ₸</span>
+                                        <button
+                                            onClick={() => {
+                                                addToCart({ ...item, quantity: 1 });
+                                                setIsCartOpen(true);
+                                            }}
+                                            style={{ background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '10px', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                                        >
+                                            <Zap size={14} fill="white" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Information Block */}
+                <section style={{
+                    padding: '24px', background: 'var(--bg-tertiary)', borderRadius: '24px',
+                    border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '12px'
+                }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: 'var(--primary)' }}>
+                        <Info size={18} />
+                        <h3 style={{ margin: 0, fontSize: '14px', fontWeight: '900', letterSpacing: '0.5px' }}>КАК ПРАВИЛЬНО?</h3>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '13px', lineHeight: '1.6', opacity: 0.8, fontWeight: '500' }}>
+                        Для лучшего опыта рекомендуем менять угли каждые 30-40 минут.
+                        Если кальян начал горчить — просто нажмите кнопку <b>МАСТЕР</b> в верхнем меню,
+                        и мы все исправим за пару минут!
+                    </p>
                 </section>
             </main>
 
@@ -485,21 +504,33 @@ const CustomerMenu = () => {
                                     <div key={idx} style={{ display: 'flex', gap: '16px', alignItems: 'center', background: 'var(--bg-secondary)', padding: '16px', borderRadius: '20px', border: '1px solid var(--border-color)' }}>
                                         <div style={{ flex: 1 }}>
                                             <h3 style={{ fontSize: '15px', fontWeight: '800', margin: 0 }}>{item.dish.name}</h3>
-                                            <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', margin: '4px 0 0' }}>{item.quantity} x {item.dish.price} ₽</p>
+                                            <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', margin: '4px 0 0' }}>{item.quantity} x {item.dish.price} ₸</p>
                                         </div>
                                         <button onClick={() => removeFromCart(item.dish.id)} style={{ padding: '8px', background: 'none', border: 'none', color: 'var(--error)' }}><Trash2 size={18} /></button>
                                     </div>
                                 ))}
                             </div>
-                            <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid var(--border-color)' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
-                                    <span style={{ fontSize: '20px', fontWeight: '900' }}>ИТОГО</span>
-                                    <span style={{ fontSize: '20px', fontWeight: '900', color: 'var(--primary)' }}>{totalPrice} ₽</span>
-                                </div>
-                                <button onClick={handleCheckout} className="btn-primary" style={{ width: '100%', height: '60px', borderRadius: '16px' }}>
-                                    {orderMutation.isPending ? 'ОФОРМЛЯЕМ...' : 'ЗАКАЗАТЬ'}
-                                </button>
+                            <div style={{ marginBottom: '24px' }}>
+                                <label style={{ fontSize: '11px', fontWeight: '900', opacity: 0.5, display: 'block', marginBottom: '8px', letterSpacing: '1px' }}>КОММЕНТАРИЙ К ЗАКАЗУ</label>
+                                <textarea
+                                    value={orderComment}
+                                    onChange={(e) => setOrderComment(e.target.value)}
+                                    placeholder="Напишите ваши пожелания..."
+                                    style={{
+                                        width: '100%', height: '80px', background: 'var(--bg-secondary)',
+                                        border: '1px solid var(--border-color)', borderRadius: '16px',
+                                        padding: '16px', color: 'var(--text-primary)', fontSize: '14px',
+                                        resize: 'none', outline: 'none'
+                                    }}
+                                />
                             </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
+                                <span style={{ fontSize: '20px', fontWeight: '900' }}>ИТОГО</span>
+                                <span style={{ fontSize: '20px', fontWeight: '900', color: 'var(--primary)' }}>{totalPrice} ₸</span>
+                            </div>
+                            <button onClick={handleCheckout} className="btn-primary" style={{ width: '100%', height: '60px', borderRadius: '16px' }}>
+                                {orderMutation.isPending ? 'ОФОРМЛЯЕМ...' : 'ЗАКАЗАТЬ'}
+                            </button>
                         </motion.div>
                     </div>
                 )}

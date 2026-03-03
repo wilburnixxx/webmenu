@@ -89,7 +89,7 @@ const DishCard = ({ dish, onAddToCart, onShowDetails }: DishCardProps) => {
 
                 {/* Price & Action */}
                 <div style={{ marginTop: 'auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-                    <span className="price-mono" style={{ fontSize: 'clamp(16px, 2vw, 20px)' }}>{dish.price} ₽</span>
+                    <span className="price-mono" style={{ fontSize: 'clamp(16px, 2vw, 20px)' }}>{dish.price} ₸</span>
                     <button
                         onClick={() => dish.isAvailable && onAddToCart(dish)}
                         disabled={!dish.isAvailable}
