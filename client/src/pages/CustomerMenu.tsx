@@ -109,6 +109,10 @@ const CustomerMenu = () => {
 
     const handleCheckout = () => {
         if (cart.length === 0) return;
+
+        // Merge all item descriptions into a single comment for the Master
+        const mergedComments = cart.map(item => `- ${item.dish.name}: ${item.dish.description}`).join('\n');
+
         orderMutation.mutate({
             tableNumber,
             totalPrice: totalPrice,
@@ -116,7 +120,8 @@ const CustomerMenu = () => {
                 dishId: item.dish.id,
                 quantity: item.quantity,
                 price: item.dish.price
-            }))
+            })),
+            comments: mergedComments
         });
     };
 
@@ -182,10 +187,11 @@ const CustomerMenu = () => {
                         }}
                     >
                         <div style={{
-                            background: '#1A1A1A', color: 'white', padding: '16px 24px',
-                            borderRadius: '20px', boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
-                            display: 'flex', alignItems: 'center', gap: '12px',
-                            border: '1px solid rgba(255,255,255,0.1)'
+                            background: 'var(--bg-tertiary)', color: 'var(--text-primary)', padding: '20px 24px',
+                            borderRadius: '24px', display: 'flex', flexDirection: 'column', gap: '16px',
+                            boxShadow: '0 8px 25px rgba(0,0,0,0.3)',
+                            border: '1px solid var(--border-color)',
+                            position: 'relative', overflow: 'hidden'
                         }}>
                             <div style={{ padding: '8px', background: 'var(--primary)', borderRadius: '10px' }}>
                                 <Bell size={16} fill="white" />
@@ -244,6 +250,22 @@ const CustomerMenu = () => {
                 <ActionButton icon={<GripVertical size={18} />} label="ТАБАК" onClick={() => handleCallAction('TOBACCO', 'Сейчас заменим табак! 🍃')} active={isCalling} />
                 <ActionButton icon={<Zap size={18} />} label="КАЛЬЯН" onClick={() => handleCallAction('HOOKAH_CHANGE', 'Готовим новый кальян! 🌬️')} active={isCalling} />
             </div>
+
+            {/* Floating AI Consultant Widget */}
+            <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setIsAiOpen(true)}
+                style={{
+                    position: 'fixed', bottom: '100px', right: '20px', zIndex: 2000,
+                    width: '64px', height: '64px', borderRadius: '32px',
+                    background: 'var(--primary)', color: 'white', border: 'none',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 12px 32px rgba(168, 85, 247, 0.4)', cursor: 'pointer'
+                }}
+            >
+                <Sparkles size={30} />
+            </motion.button>
 
             {/* Active Order Banner */}
             <AnimatePresence>
@@ -351,16 +373,15 @@ const CustomerMenu = () => {
                             disabled={!selectedTobacco || !selectedLiquid}
                             onClick={() => {
                                 addToCart({
-                                    id: `custom-${Date.now()}`,
+                                    ...selectedTobacco,
+                                    id: selectedTobacco.id, // Ensure real ID is used
                                     name: `Hookah: ${selectedTobacco.name}`,
                                     price: selectedTobacco.price + (selectedLiquid?.price || 0),
                                     description: `Крепость: ${hookahStrength}/10, Наполнение: ${selectedLiquid.name}`,
-                                    category: 'Custom',
-                                    imageUrl: 'https://images.unsplash.com/photo-1542332213-9b5a5a3fad35?auto=format&fit=crop&q=80&w=400',
-                                    isAvailable: true, allergens: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString()
-                                } as any);
+                                });
                                 setSelectedTobacco(null);
                                 setSelectedLiquid(null);
+                                setIsCartOpen(true); // Auto-open cart
                             }}
                             className="btn-primary"
                             style={{ width: '100%', height: '56px', borderRadius: '16px', marginTop: '12px' }}
@@ -422,8 +443,16 @@ const CustomerMenu = () => {
                 {isAiOpen && (
                     <div style={{ position: 'fixed', inset: 0, zIndex: 4000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px' }}>
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsAiOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(12px)' }} />
-                        <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
-                            style={{ width: '100%', maxWidth: '440px', height: '600px', background: 'var(--bg-secondary)', borderRadius: '32px', overflow: 'hidden', display: 'flex', flexDirection: 'column', border: '1px solid var(--border-color)', position: 'relative', zIndex: 4001 }}
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            style={{
+                                width: '100%', maxWidth: '440px', maxHeight: '80vh', minHeight: '400px',
+                                background: 'var(--bg-secondary)', borderRadius: '32px', overflow: 'hidden',
+                                display: 'flex', flexDirection: 'column', border: '1px solid var(--border-color)',
+                                position: 'relative', zIndex: 4005, boxShadow: '0 20px 60px rgba(0,0,0,0.4)'
+                            }}
                         >
                             <header style={{ padding: '20px 24px', background: 'var(--bg-tertiary)', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>

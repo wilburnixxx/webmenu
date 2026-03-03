@@ -51,9 +51,9 @@ const LoginPage = () => {
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 style={{
-                    width: '100%', maxWidth: '400px', background: '#FFFFFF', padding: '40px',
+                    width: '100%', maxWidth: '400px', background: 'var(--bg-secondary)', padding: '40px',
                     borderRadius: '32px', border: '1px solid var(--border-color)',
-                    boxShadow: '0 20px 60px rgba(0,0,0,0.05)'
+                    boxShadow: '0 20px 60px rgba(0,0,0,0.2)'
                 }}
             >
                 <div style={{ textAlign: 'center', marginBottom: '32px' }}>

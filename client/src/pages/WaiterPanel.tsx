@@ -128,10 +128,10 @@ const WaiterPanel = () => {
                                     animate={{ scale: 1, opacity: 1 }}
                                     exit={{ scale: 0.8, opacity: 0 }}
                                     style={{
-                                        background: '#1A1A1A', color: 'white', padding: '20px 24px',
+                                        background: 'var(--bg-tertiary)', color: 'var(--text-primary)', padding: '20px 24px',
                                         borderRadius: '24px', display: 'flex', flexDirection: 'column', gap: '16px',
-                                        boxShadow: '0 8px 25px rgba(255, 107, 53, 0.2)',
-                                        border: '1px solid rgba(255,107,53,0.3)',
+                                        boxShadow: '0 8px 25px rgba(0,0,0,0.3)',
+                                        border: '1px solid var(--border-color)',
                                         position: 'relative', overflow: 'hidden'
                                     }}
                                 >
@@ -147,10 +147,10 @@ const WaiterPanel = () => {
                                             textTransform: 'uppercase',
                                             border: '1px solid rgba(255,107,53,0.2)'
                                         }}>
-                                            {call.type === 'MASTER' ? 'Вызов мастера' :
-                                                call.type === 'COALS' ? 'Замена углей' :
-                                                    call.type === 'TOBACCO' ? 'Замена табака' :
-                                                        call.type === 'HOOKAH_CHANGE' ? 'Замена кальяна' : call.type}
+                                            {call.type === 'MASTER' ? 'Мастер' :
+                                                call.type === 'COALS' ? 'Угли' :
+                                                    call.type === 'TOBACCO' ? 'Табак' :
+                                                        call.type === 'HOOKAH_CHANGE' ? 'Кальян' : call.type}
                                         </div>
                                     </div>
 

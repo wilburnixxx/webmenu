@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { menuService } from '../api';
 import {
     Plus, Trash2, DollarSign, Package,
-    X, Settings, GripVertical, Sparkles, Wind
+    X, Settings, GripVertical, Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
@@ -163,9 +163,9 @@ const AdminDashboard = () => {
                             style={{
                                 padding: '10px 20px', borderRadius: '12px', border: 'none', cursor: 'pointer',
                                 fontSize: '13px', fontWeight: '800', whiteSpace: 'nowrap',
-                                background: activeTab === tab ? '#FFFFFF' : 'transparent',
-                                color: activeTab === tab ? 'var(--text-primary)' : 'var(--text-tertiary)',
-                                boxShadow: activeTab === tab ? '0 4px 12px rgba(0,0,0,0.05)' : 'none',
+                                background: activeTab === tab ? 'var(--primary)' : 'transparent',
+                                color: activeTab === tab ? '#FFFFFF' : 'var(--text-tertiary)',
+                                boxShadow: activeTab === tab ? '0 4px 12px rgba(168, 85, 247, 0.2)' : 'none',
                                 transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)'
                             }}
                         >
@@ -249,7 +249,7 @@ const AdminDashboard = () => {
                 {/* Categories Tab (Admin - Light Mode) */}
                 {activeTab === 'categories' && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ maxWidth: '800px', margin: '0 auto' }}>
-                        <div style={{ background: '#FFFFFF', borderRadius: '32px', padding: 'clamp(20px, 5vw, 48px)', border: '1px solid var(--border-color)', boxShadow: '0 12px 40px rgba(0,0,0,0.03)' }}>
+                        <div style={{ background: 'var(--bg-secondary)', borderRadius: '32px', padding: 'clamp(20px, 5vw, 48px)', border: '1px solid var(--border-color)', boxShadow: '0 12px 40px rgba(0,0,0,0.03)' }}>
                             <h2 style={{ marginBottom: '32px', fontSize: '28px', fontWeight: '900' }}>Управление категориями</h2>
                             <div style={{ display: 'flex', gap: '12px', marginBottom: '40px' }}>
                                 <input id="admin-cat-input" placeholder="Название новой категории" style={{ flex: 1, height: '56px', padding: '0 20px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', fontSize: '15px' }} />
@@ -292,10 +292,10 @@ const AdminDashboard = () => {
                 {/* AI Chef Settings Tab (Admin - Light Mode) */}
                 {activeTab === 'ai' && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ maxWidth: '900px', margin: '0 auto' }}>
-                        <div style={{ background: '#FFFFFF', borderRadius: '32px', padding: 'clamp(20px, 5vw, 48px)', border: '1px solid var(--border-color)', boxShadow: '0 12px 40px rgba(0,0,0,0.04)' }}>
+                        <div style={{ background: 'var(--bg-secondary)', borderRadius: '32px', padding: 'clamp(20px, 5vw, 48px)', border: '1px solid var(--border-color)', boxShadow: '0 12px 40px rgba(0,0,0,0.2)' }}>
                             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '20px', marginBottom: '40px' }}>
                                 <div style={{ background: 'linear-gradient(135deg, var(--primary), #A855F7)', width: '64px', height: '64px', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', boxShadow: '0 10px 25px rgba(255, 107, 53, 0.3)' }}>
-                                    <ChefHat size={36} />
+                                    <Sparkles size={36} />
                                 </div>
                                 <div>
                                     <h2 style={{ margin: 0, fontSize: '28px', fontWeight: '900' }}>Настройка ИИ-Ассистента</h2>
@@ -332,7 +332,7 @@ const AdminDashboard = () => {
                 {/* QR Codes Tab (Admin - Light Mode) */}
                 {activeTab === 'qr' && (
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} style={{ maxWidth: '1000px', margin: '0 auto' }}>
-                        <div style={{ background: '#FFFFFF', borderRadius: '32px', padding: 'clamp(20px, 5vw, 48px)', border: '1px solid var(--border-color)', boxShadow: '0 12px 40px rgba(0,0,0,0.03)' }}>
+                        <div style={{ background: 'var(--bg-secondary)', borderRadius: '32px', padding: 'clamp(20px, 5vw, 48px)', border: '1px solid var(--border-color)', boxShadow: '0 12px 40px rgba(0,0,0,0.03)' }}>
                             <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '48px', gap: '24px' }}>
                                 <div>
                                     <h2 style={{ margin: 0, fontSize: '28px', fontWeight: '900' }}>Генератор QR-кодов</h2>
@@ -359,7 +359,7 @@ const AdminDashboard = () => {
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '48px' }}>
-                                <div style={{ background: 'var(--bg-secondary)', padding: '48px', borderRadius: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed var(--border-color)' }}>
+                                <div style={{ background: 'var(--bg-tertiary)', padding: '48px', borderRadius: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px dashed var(--border-color)' }}>
                                     <div style={{ padding: '32px', background: 'white', borderRadius: '24px', boxShadow: '0 15px 45px rgba(0,0,0,0.08)' }}>
                                         <QRCodeSVG
                                             value={`${window.location.origin}/?table=${qrData.table}`}
@@ -372,7 +372,7 @@ const AdminDashboard = () => {
                                 </div>
 
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', justifyContent: 'center' }}>
-                                    <div className="card" style={{ background: 'white', padding: '32px', border: '1px solid var(--border-color)', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+                                    <div className="card" style={{ background: 'var(--bg-tertiary)', padding: '32px', border: '1px solid var(--border-color)', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}>
                                         <h3 style={{ marginBottom: '12px', fontSize: '16px', fontWeight: '800' }}>ПРЯМАЯ ССЫЛКА</h3>
                                         <div style={{ display: 'flex', gap: '8px' }}>
                                             <input
@@ -499,7 +499,7 @@ const AdminDashboard = () => {
 
 const AdminStatCard = ({ title, value, icon, color, onClick }: any) => (
     <div onClick={onClick} style={{
-        background: '#FFFFFF', padding: '24px', borderRadius: '24px', border: '1px solid var(--border-color)',
+        background: 'var(--bg-secondary)', padding: '24px', borderRadius: '24px', border: '1px solid var(--border-color)',
         cursor: onClick ? 'pointer' : 'default', display: 'flex', alignItems: 'center', gap: '20px',
         boxShadow: '0 10px 30px rgba(0,0,0,0.02)', transition: 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)'
     }}>
