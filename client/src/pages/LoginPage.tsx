@@ -111,7 +111,7 @@ const LoginPage = () => {
                         <div style={{
                             padding: '12px 16px', background: 'rgba(255, 59, 48, 0.05)',
                             color: 'var(--error)', borderRadius: '12px', fontSize: '13px',
-                            fontWeight: '700', border: '1px solid rgba(255, 59, 48, 0.1)'
+                            fontWeight: '700', border: '1px solid rgba(241, 56, 46, 0.1)'
                         }}>
                             {error}
                         </div>
