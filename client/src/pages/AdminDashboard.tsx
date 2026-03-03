@@ -3,7 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { menuService } from '../api';
 import {
     Plus, Trash2, DollarSign, Package,
-    X, Settings, GripVertical, Sparkles, Image as ImageIcon
+    X, Settings, GripVertical, Sparkles, Image as ImageIcon,
+    ChevronDown, ChevronUp
 } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
@@ -23,6 +24,7 @@ const AdminDashboard = () => {
 
     const [localCats, setLocalCats] = useState<any[]>([]);
     const [localDishes, setLocalDishes] = useState<any[]>([]);
+    const [collapsedCats, setCollapsedCats] = useState<string[]>([]);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     // Queries
@@ -111,18 +113,24 @@ const AdminDashboard = () => {
             // Generate and download report
             if (data.length > 0) {
                 const BOM = "\uFEFF"; // UTF-8 BOM for Excel support
-                let csv = "№ Заказа;Дата и Время;Состав заказа;Сумма позиций;Итого\n";
+                let csv = "№;Дата и Время;Позиция;Сумма;Итого\n";
 
                 data.forEach((order, index) => {
                     const date = new Date(order.createdAt).toLocaleString();
-                    const composition = order.items.map((it: any) =>
-                        `${it.dish?.name || 'Товар'} x${it.quantity}`
-                    ).join(', ');
-                    const itemSums = order.items.map((it: any) =>
-                        `${it.price * it.quantity}₸`
-                    ).join(', ');
 
-                    csv += `${index + 1};${date};"${composition}";"${itemSums}";${order.totalPrice}₸\n`;
+                    order.items.forEach((it: any, itIdx: number) => {
+                        const orderNum = itIdx === 0 ? (index + 1).toString() : "";
+                        const orderDate = itIdx === 0 ? date : "";
+                        const itemName = `${it.dish?.name || 'Товар'} x${it.quantity}`;
+                        const itemPrice = `${it.price * it.quantity}₸`;
+
+                        csv += `${orderNum};${orderDate};${itemName};${itemPrice};\n`;
+                    });
+
+                    // Total row for this order
+                    csv += "; ; ;ИТОГО:;\"" + order.totalPrice + "₸\"\n";
+                    // Empty separator row
+                    csv += "; ; ; ;\n";
                 });
 
                 const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
@@ -288,60 +296,87 @@ const AdminDashboard = () => {
                             <div style={{ textAlign: 'right' }}>ДЕЙСТВИЯ</div>
                         </div>
 
-                        <Reorder.Group axis="y" values={localDishes} onReorder={handleDishReorder} style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: 0 }}>
-                            {localDishes.map((dish: any) => (
-                                <Reorder.Item
-                                    key={dish.id}
-                                    value={dish}
-                                    style={{
-                                        display: 'grid',
-                                        gridTemplateColumns: '48px 80px 1fr 150px 100px 120px 100px',
-                                        gap: '24px',
-                                        alignItems: 'center',
-                                        background: 'var(--bg-secondary)',
-                                        padding: '16px 32px',
-                                        borderRadius: '20px',
-                                        border: '1px solid var(--border-color)',
-                                        cursor: 'default'
-                                    }}
-                                    whileDrag={{ scale: 1.01, boxShadow: '0 10px 40px rgba(0,0,0,0.2)' }}
-                                >
-                                    <div style={{ cursor: 'grab', color: 'var(--text-tertiary)' }}><GripVertical size={20} /></div>
-                                    <div style={{ width: '80px', height: '60px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
-                                        <img src={dish.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <Reorder.Group axis="y" values={localDishes} onReorder={handleDishReorder} style={{ display: 'flex', flexDirection: 'column', gap: '32px', padding: 0 }}>
+                            {categories?.map((cat: any) => {
+                                const catDishes = localDishes.filter(d => d.category === cat.name);
+                                const isCollapsed = collapsedCats.includes(cat.name);
+
+                                return (
+                                    <div key={cat.id} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        {/* Category Divider Header */}
+                                        <div
+                                            onClick={() => setCollapsedCats(prev => prev.includes(cat.name) ? prev.filter(c => c !== cat.name) : [...prev, cat.name])}
+                                            style={{
+                                                display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 24px',
+                                                background: 'var(--bg-tertiary)', borderRadius: '16px', cursor: 'pointer',
+                                                border: '1px solid var(--border-color)', transition: 'all 200ms'
+                                            }}
+                                        >
+                                            {isCollapsed ? <ChevronUp size={20} style={{ opacity: 0.5 }} /> : <ChevronDown size={20} style={{ color: 'var(--primary)' }} />}
+                                            <span style={{ fontWeight: '900', fontSize: '13px', letterSpacing: '1px', textTransform: 'uppercase' }}>{cat.name}</span>
+                                            <span style={{ fontSize: '11px', fontWeight: '800', opacity: 0.4, marginLeft: '4px' }}>{catDishes.length} ПОЗИЦИЙ</span>
+                                        </div>
+
+                                        {!isCollapsed && (
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                {catDishes.map((dish: any) => (
+                                                    <Reorder.Item
+                                                        key={dish.id}
+                                                        value={dish}
+                                                        style={{
+                                                            display: 'grid',
+                                                            gridTemplateColumns: '48px 80px 1fr 150px 100px 120px 100px',
+                                                            gap: '24px',
+                                                            alignItems: 'center',
+                                                            background: 'var(--bg-secondary)',
+                                                            padding: '16px 32px',
+                                                            borderRadius: '20px',
+                                                            border: '1px solid var(--border-color)',
+                                                            cursor: 'default'
+                                                        }}
+                                                        whileDrag={{ scale: 1.01, boxShadow: '0 10px 40px rgba(0,0,0,0.2)' }}
+                                                    >
+                                                        <div style={{ cursor: 'grab', color: 'var(--text-tertiary)' }}><GripVertical size={20} /></div>
+                                                        <div style={{ width: '80px', height: '60px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
+                                                            <img src={dish.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                        </div>
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                                            <span style={{ fontWeight: '800', fontSize: '15px' }}>{dish.name}</span>
+                                                            <span style={{ fontSize: '12px', color: 'var(--text-tertiary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '400px' }}>{dish.description}</span>
+                                                        </div>
+                                                        <div>
+                                                            <span style={{ fontSize: '12px', fontWeight: '800', padding: '6px 12px', borderRadius: '10px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', color: 'var(--primary)' }}>
+                                                                {dish.category}
+                                                            </span>
+                                                        </div>
+                                                        <div style={{ fontWeight: '950', fontSize: '16px' }}>{dish.price} ₸</div>
+                                                        <div>
+                                                            <span style={{
+                                                                fontSize: '11px',
+                                                                fontWeight: '900',
+                                                                padding: '4px 10px',
+                                                                borderRadius: '8px',
+                                                                background: dish.isAvailable ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                                                                color: dish.isAvailable ? '#10B981' : '#EF4444'
+                                                            }}>
+                                                                {dish.isAvailable ? 'АКТИВНО' : 'СТОП'}
+                                                            </span>
+                                                        </div>
+                                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                                            <button onClick={() => { setEditingDish(dish); setIsModalOpen(true); }} className="btn-secondary" style={{ padding: '8px', height: 'auto', background: 'none' }}>
+                                                                <Settings size={18} />
+                                                            </button>
+                                                            <button onClick={() => deleteMutation.mutate(dish.id)} className="btn-secondary" style={{ padding: '8px', height: 'auto', color: 'var(--error)', borderColor: 'transparent', background: 'none' }}>
+                                                                <Trash2 size={18} />
+                                                            </button>
+                                                        </div>
+                                                    </Reorder.Item>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                        <span style={{ fontWeight: '800', fontSize: '15px' }}>{dish.name}</span>
-                                        <span style={{ fontSize: '12px', color: 'var(--text-tertiary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '400px' }}>{dish.description}</span>
-                                    </div>
-                                    <div>
-                                        <span style={{ fontSize: '12px', fontWeight: '800', padding: '6px 12px', borderRadius: '10px', background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)', color: 'var(--primary)' }}>
-                                            {dish.category}
-                                        </span>
-                                    </div>
-                                    <div style={{ fontWeight: '950', fontSize: '16px' }}>{dish.price} ₸</div>
-                                    <div>
-                                        <span style={{
-                                            fontSize: '11px',
-                                            fontWeight: '900',
-                                            padding: '4px 10px',
-                                            borderRadius: '8px',
-                                            background: dish.isAvailable ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                                            color: dish.isAvailable ? '#10B981' : '#EF4444'
-                                        }}>
-                                            {dish.isAvailable ? 'АКТИВНО' : 'СТОП'}
-                                        </span>
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                        <button onClick={() => { setEditingDish(dish); setIsModalOpen(true); }} className="btn-secondary" style={{ padding: '8px', height: 'auto', background: 'none' }}>
-                                            <Settings size={18} />
-                                        </button>
-                                        <button onClick={() => deleteMutation.mutate(dish.id)} className="btn-secondary" style={{ padding: '8px', height: 'auto', color: 'var(--error)', borderColor: 'transparent', background: 'none' }}>
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
-                                </Reorder.Item>
-                            ))}
+                                );
+                            })}
                         </Reorder.Group>
                     </motion.div>
                 )}
