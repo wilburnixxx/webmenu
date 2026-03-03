@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { menuService } from '../api';
 import {
     Plus, Trash2, BarChart3, Utensils, DollarSign, Package,
-    ChefHat, X, Settings, GripVertical
+    ChefHat, X, Settings, GripVertical, Zap
 } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
