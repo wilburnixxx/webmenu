@@ -5,7 +5,7 @@ import { CheckCircle, Clock, ChefHat, XCircle, Archive, Layout, Bell } from 'luc
 import { motion, AnimatePresence } from 'framer-motion';
 
 const statusMap: Record<string, { label: string, color: string, icon: any }> = {
-    ACCEPTED: { label: 'ГОТОВИТСЯ', color: '#3B82F6', icon: <ChefHat size={18} /> },
+    ACCEPTED: { label: 'ГОТОВИТСЯ', color: '#5b9affff', icon: <ChefHat size={18} /> },
     READY: { label: 'ГОТОВО', color: '#4ADE80', icon: <CheckCircle size={18} /> },
     CANCELLED: { label: 'ОТМЕНЕНО', color: '#FF5757', icon: <XCircle size={18} /> },
     ARCHIVED: { label: 'АРХИВ', color: 'var(--text-tertiary)', icon: <Archive size={18} /> },
