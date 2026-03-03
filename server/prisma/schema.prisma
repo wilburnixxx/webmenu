@@ -92,6 +92,7 @@ model ActionLog {
 model StaffCall {
   id          String   @id @default(uuid())
   tableNumber String
+  type        String   @default("MASTER") // MASTER, COALS, TOBACCO, HOOKAH_CHANGE
   status      String   @default("PENDING") // PENDING, DONE
-  createdAt   DateTime @default(now())
+  createdAt     DateTime @default(now())
 }

@@ -213,9 +213,9 @@ app.patch(['/orders/:id', '/api/orders/:id'], checkAuth, async (req, res) => {
 // --- ВЫЗОВ ОФИЦИАНТА ---
 app.post(['/calls', '/api/calls'], async (req, res) => {
     try {
-        const { tableNumber } = req.body;
-        const result = await prisma.staffCall.create({ data: { tableNumber: String(tableNumber) } });
-        await logAction('ВЫЗОВ', `Стол ${tableNumber}`, 'Гость');
+        const { tableNumber, type } = req.body;
+        const result = await prisma.staffCall.create({ data: { tableNumber: String(tableNumber), type: type || 'MASTER' } });
+        await logAction('ВЫЗОВ', `${type || 'МАСТЕР'} (Стол ${tableNumber})`, 'Гость');
         res.json(result);
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
