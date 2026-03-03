@@ -75,6 +75,7 @@ export const menuService = {
     },
     createDish: async (d: any) => (await api.post('/dishes', d)).data,
     updateDish: async (id: string, d: any) => (await api.put(`/dishes/${id}`, d)).data,
+    reorderDishes: async (dishes: { id: string, order: number }[]) => (await api.post('/dishes/reorder', { dishes })).data,
     deleteDish: async (id: string) => (await api.delete(`/dishes/${id}`)).data,
 
     // Метрики и журналы

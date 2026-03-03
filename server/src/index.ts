@@ -143,11 +143,15 @@ app.delete(['/categories/:id', '/api/categories/:id'], checkAuth, async (req, re
 app.get(['/menu', '/api/menu'], async (req, res) => {
     try {
         const categories = await prisma.category.findMany({ orderBy: { order: 'asc' } });
-        const dishes = await prisma.dish.findMany();
+        const dishes = await prisma.dish.findMany({ orderBy: { order: 'asc' } });
 
-        // Сортируем блюда согласно порядку категорий
+        // Сортируем блюда согласно порядку категорий (первичный) и их внутреннему порядку (вторичный)
         const catMap = categories.reduce((acc, cat, idx) => ({ ...acc, [cat.name]: idx }), {});
-        const sortedDishes = dishes.sort((a, b) => (catMap[a.category] || 99) - (catMap[b.category] || 99));
+        const sortedDishes = dishes.sort((a, b) => {
+            const catDiff = (catMap[a.category] || 99) - (catMap[b.category] || 99);
+            if (catDiff !== 0) return catDiff;
+            return (a.order || 0) - (b.order || 0);
+        });
 
         res.json(sortedDishes);
     } catch (e) { res.status(500).json({ error: e.message }); }
@@ -155,9 +159,29 @@ app.get(['/menu', '/api/menu'], async (req, res) => {
 
 app.post(['/dishes', '/api/dishes'], async (req, res) => {
     try {
-        const result = await prisma.dish.create({ data: { ...req.body, price: parseFloat(req.body.price) || 0 } });
+        const maxOrderResult = await prisma.dish.aggregate({ _max: { order: true } });
+        const result = await prisma.dish.create({
+            data: {
+                ...req.body,
+                price: parseFloat(req.body.price) || 0,
+                order: (maxOrderResult._max.order || 0) + 1
+            }
+        });
         res.json(result);
     } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post(['/dishes/reorder', '/api/dishes/reorder'], checkAuth, async (req, res) => {
+    try {
+        const { dishes } = req.body;
+        await prisma.$transaction(
+            dishes.map((d: any) => prisma.dish.update({
+                where: { id: d.id },
+                data: { order: parseInt(d.order) }
+            }))
+        );
+        res.json({ success: true });
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
 app.put(['/dishes/:id', '/api/dishes/:id'], async (req, res) => {
