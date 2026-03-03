@@ -1,11 +1,11 @@
 import { useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { orderService, menuService, callService } from '../api';
-import { CheckCircle, Clock, ChefHat, XCircle, Archive, Layout, Bell } from 'lucide-react';
+import { CheckCircle, Clock, Wind, XCircle, Archive, Layout, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const statusMap: Record<string, { label: string, color: string, icon: any }> = {
-    ACCEPTED: { label: 'ГОТОВИТСЯ', color: '#5b9affff', icon: <ChefHat size={18} /> },
+    ACCEPTED: { label: 'ГОТОВИТСЯ', color: '#A855F7', icon: <Wind size={18} /> },
     READY: { label: 'ГОТОВО', color: '#4ADE80', icon: <CheckCircle size={18} /> },
     CANCELLED: { label: 'ОТМЕНЕНО', color: '#FF5757', icon: <XCircle size={18} /> },
     ARCHIVED: { label: 'АРХИВ', color: 'var(--text-tertiary)', icon: <Archive size={18} /> },

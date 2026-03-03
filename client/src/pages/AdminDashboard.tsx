@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { menuService } from '../api';
 import {
-    Plus, Trash2, BarChart3, Utensils, DollarSign, Package,
-    ChefHat, X, Settings, GripVertical, Zap
+    Plus, Trash2, DollarSign, Package,
+    X, Settings, GripVertical, Sparkles, Wind
 } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
@@ -174,16 +174,6 @@ const AdminDashboard = () => {
                     ))}
                 </div>
 
-                {activeTab === 'dishes' && (
-                    <div style={{
-                        background: 'var(--primary-bg-alpha)', padding: '12px 20px', borderRadius: '16px',
-                        fontSize: '12px', border: '1px solid var(--primary)', color: 'var(--primary)',
-                        display: 'flex', alignItems: 'center', gap: '10px'
-                    }}>
-                        <Zap size={16} />
-                        <span><strong>Система Кальянной v4.0:</strong> Для работы конструктора создайте категории <b>"Табак"</b> и <b>"Жидкость"</b>.</span>
-                    </div>
-                )}
 
                 <button className="btn-primary" onClick={() => {
                     setEditingDish({ name: '', price: 0, category: categories?.[0]?.name || '', description: '', imageUrl: '', allergens: [], isAvailable: true });
@@ -194,11 +184,9 @@ const AdminDashboard = () => {
             </header>
 
             {/* Admin Stats Row (Responsive) */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '40px' }}>
-                <AdminStatCard title="Заказов сегодня" value={metrics?.totalOrders || 0} icon={<Package />} color="#3B82F6" />
-                <AdminStatCard title="Выручка" value={`${(metrics?.totalRevenue || 0).toLocaleString()} ₽`} icon={<DollarSign />} color="#4ADE80" onClick={() => { setAdjData({ metricName: 'Volume', value: 0, note: '' }); setIsAdjusting(true); }} />
-                <AdminStatCard title="Позиций в меню" value={dishes?.length || 0} icon={<Utensils />} color="#913f22ff" onClick={() => { setAdjData({ metricName: 'DishesCount', value: 0, note: '' }); setIsAdjusting(true); }} />
-                <AdminStatCard title="Блюдо дня" value={metrics?.topDishes?.[0]?.name || '—'} icon={<BarChart3 />} color="#A855F7" />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginBottom: '40px' }}>
+                <AdminStatCard title="Заказов за смену" value={metrics?.totalOrders || 0} icon={<Package />} color="#3B82F6" />
+                <AdminStatCard title="Общая выручка" value={`${(metrics?.totalRevenue || 0).toLocaleString()} ₽`} icon={<DollarSign />} color="#4ADE80" onClick={() => { setAdjData({ metricName: 'Volume', value: 0, note: '' }); setIsAdjusting(true); }} />
             </div>
 
             {/* Tab Contents */}
