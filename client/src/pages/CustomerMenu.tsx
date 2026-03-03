@@ -278,12 +278,11 @@ const CustomerMenu = () => {
 
             {/* Quick Actions Bar */}
             <div style={{
-                display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '4px',
+                display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px',
                 padding: '12px 8px', background: 'rgba(10, 10, 11, 0.7)',
                 position: 'sticky', top: 'calc(56px + env(safe-area-inset-top, 0px))', zIndex: 998,
                 borderBottom: '1px solid var(--border-color)', backdropFilter: 'blur(20px)'
             }}>
-                <ActionButton icon={<Sparkles size={18} />} label="ИИ-СОВЕТ" onClick={() => setIsAiOpen(true)} />
                 <ActionButton icon={<Bell size={18} />} label="МАСТЕР" onClick={() => handleCallAction('MASTER', 'Мастер скоро подойдет! 💨')} active={isCalling} />
                 <ActionButton icon={<Flame size={18} />} label="УГЛИ" onClick={() => handleCallAction('COALS', 'Угли уже в пути! 🔥')} active={isCalling} />
                 <ActionButton icon={<GripVertical size={18} />} label="ТАБАК" onClick={() => handleCallAction('TOBACCO', 'Сейчас заменим табак! 🍃')} active={isCalling} />
@@ -329,24 +328,11 @@ const CustomerMenu = () => {
             <main style={{ padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
 
                 <section className="card" style={{ padding: '24px', background: 'var(--bg-secondary)', borderRadius: '32px', border: '1px solid var(--border-color)', boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <div style={{ background: 'var(--primary)', padding: '10px', borderRadius: '14px', color: 'white' }}>
-                                <Wind size={20} />
-                            </div>
-                            <h2 style={{ fontSize: '20px', margin: 0, fontWeight: '900' }}>КОНСТРУКТОР</h2>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+                        <div style={{ background: 'var(--primary)', padding: '10px', borderRadius: '14px', color: 'white' }}>
+                            <Wind size={20} />
                         </div>
-                        <button
-                            onClick={() => setIsAiOpen(true)}
-                            style={{
-                                background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)',
-                                padding: '8px 12px', borderRadius: '12px', color: 'var(--primary)',
-                                display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: '900',
-                                cursor: 'pointer'
-                            }}
-                        >
-                            <Sparkles size={14} /> ПОМОЩЬ ИИ
-                        </button>
+                        <h2 style={{ fontSize: '20px', margin: 0, fontWeight: '900' }}>КОНСТРУКТОР</h2>
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
@@ -405,25 +391,39 @@ const CustomerMenu = () => {
                             </div>
                         </div>
 
-                        <button
-                            disabled={!selectedTobacco || !selectedLiquid}
-                            onClick={() => {
-                                addToCart({
-                                    ...selectedTobacco,
-                                    id: selectedTobacco.id, // Ensure real ID is used
-                                    name: `Hookah: ${selectedTobacco.name}`,
-                                    price: selectedTobacco.price + (selectedLiquid?.price || 0),
-                                    description: `Крепость: ${hookahStrength}/10, Наполнение: ${selectedLiquid.name}`,
-                                });
-                                setSelectedTobacco(null);
-                                setSelectedLiquid(null);
-                                setIsCartOpen(true); // Auto-open cart
-                            }}
-                            className="btn-primary"
-                            style={{ width: '100%', height: '56px', borderRadius: '16px', marginTop: '12px' }}
-                        >
-                            ДОБАВИТЬ В КОРЗИНУ ({(selectedTobacco?.price || 0) + (selectedLiquid?.price || 0)} ₸)
-                        </button>
+                        <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                            <button
+                                disabled={!selectedTobacco || !selectedLiquid}
+                                onClick={() => {
+                                    addToCart({
+                                        ...selectedTobacco,
+                                        id: selectedTobacco.id,
+                                        name: `Hookah: ${selectedTobacco.name}`,
+                                        price: selectedTobacco.price + (selectedLiquid?.price || 0),
+                                        description: `Крепость: ${hookahStrength}/10, Наполнение: ${selectedLiquid.name}`,
+                                    });
+                                    setSelectedTobacco(null);
+                                    setSelectedLiquid(null);
+                                    setIsCartOpen(true);
+                                }}
+                                className="btn-primary"
+                                style={{ flex: 7, height: '56px', borderRadius: '16px' }}
+                            >
+                                ДОБАВИТЬ ({(selectedTobacco?.price || 0) + (selectedLiquid?.price || 0)} ₸)
+                            </button>
+                            <button
+                                onClick={() => setIsAiOpen(true)}
+                                style={{
+                                    flex: 3, height: '56px', background: 'var(--bg-tertiary)',
+                                    border: '1px solid var(--border-color)', borderRadius: '16px',
+                                    color: 'var(--primary)', display: 'flex', alignItems: 'center',
+                                    justifyContent: 'center', gap: '8px', fontSize: '11px', fontWeight: '900',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <Sparkles size={16} /> ИИ
+                            </button>
+                        </div>
                     </div>
                 </section>
 
@@ -438,22 +438,29 @@ const CustomerMenu = () => {
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                             {dishes?.filter(d => d.category === 'Меню').map((item: any) => (
-                                <div key={item.id} style={{ background: 'var(--bg-secondary)', borderRadius: '24px', padding: '16px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                                    <div style={{ flex: 1 }}>
-                                        <h3 style={{ fontSize: '14px', fontWeight: '800', margin: 0 }}>{item.name}</h3>
-                                        <p style={{ fontSize: '11px', opacity: 0.6, marginTop: '4px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.description}</p>
-                                    </div>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <span style={{ fontWeight: '900', color: 'var(--primary)', fontSize: '14px' }}>{item.price} ₸</span>
-                                        <button
-                                            onClick={() => {
-                                                addToCart({ ...item, quantity: 1 });
-                                                setIsCartOpen(true);
-                                            }}
-                                            style={{ background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '10px', width: '30px', height: '30px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                                        >
-                                            <Zap size={14} fill="white" />
-                                        </button>
+                                <div key={item.id} style={{ background: 'var(--bg-secondary)', borderRadius: '24px', overflow: 'hidden', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+                                    {item.imageUrl && (
+                                        <div style={{ width: '100%', height: '120px', overflow: 'hidden' }}>
+                                            <img src={item.imageUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        </div>
+                                    )}
+                                    <div style={{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                        <div style={{ flex: 1 }}>
+                                            <h3 style={{ fontSize: '14px', fontWeight: '800', margin: 0 }}>{item.name}</h3>
+                                            <p style={{ fontSize: '11px', opacity: 0.6, marginTop: '4px', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.description}</p>
+                                        </div>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <span style={{ fontWeight: '900', color: 'var(--primary)', fontSize: '14px' }}>{item.price} ₸</span>
+                                            <button
+                                                onClick={() => {
+                                                    addToCart({ ...item, quantity: 1 });
+                                                    setIsCartOpen(true);
+                                                }}
+                                                style={{ background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '10px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 10px rgba(168, 85, 247, 0.3)' }}
+                                            >
+                                                <Zap size={14} fill="white" />
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             ))}

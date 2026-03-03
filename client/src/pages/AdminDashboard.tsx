@@ -138,6 +138,7 @@ const AdminDashboard = () => {
     const tabLabels = {
         dishes: 'ПОЗИЦИИ',
         categories: 'КАТЕГОРИИ',
+        promo: 'ПРОМО',
         ai: 'ИИ-МАСТЕР',
         qr: 'QR-КОДЫ',
         logs: 'ЖУРНАЛ'
