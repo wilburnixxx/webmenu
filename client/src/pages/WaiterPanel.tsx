@@ -89,16 +89,16 @@ const WaiterPanel = () => {
 
             {/* Header (Waiter - Responsive) */}
             <header style={{
-                background: '#FFFFFF', padding: '24px', borderBottom: '1px solid var(--border-color)',
+                background: 'var(--bg-secondary)', padding: '24px', borderBottom: '1px solid var(--border-color)',
                 display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px',
-                borderRadius: '24px', boxShadow: '0 8px 30px rgba(0,0,0,0.03)', gap: '24px'
+                borderRadius: '24px', boxShadow: '0 8px 30px rgba(0,0,0,0.2)', gap: '24px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                     <div style={{
                         width: '56px', height: '56px', borderRadius: '18px',
-                        background: 'linear-gradient(135deg, var(--primary), #FF3B30)',
+                        background: 'linear-gradient(135deg, var(--primary), #7E22CE)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 10px 25px rgba(255, 107, 53, 0.25)'
+                        boxShadow: '0 10px 25px rgba(168, 85, 247, 0.25)'
                     }}>
                         <Layout color="white" size={32} />
                     </div>

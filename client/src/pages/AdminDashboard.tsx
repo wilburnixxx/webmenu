@@ -143,17 +143,16 @@ const AdminDashboard = () => {
 
             {/* Header Section (Responsive) */}
             <header style={{
-                background: '#FFFFFF', padding: '24px', borderBottom: '1px solid var(--border-color)',
+                background: 'var(--bg-secondary)', padding: '24px', borderBottom: '1px solid var(--border-color)',
                 display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px',
-                borderRadius: '24px', boxShadow: '0 8px 30px rgba(0,0,0,0.03)', gap: '24px'
+                borderRadius: '24px', boxShadow: '0 8px 30px rgba(0,0,0,0.2)', gap: '24px'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{ background: 'var(--primary)', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', boxShadow: '0 8px 20px rgba(255, 107, 53, 0.2)' }}>
+                    <div style={{ background: 'var(--primary)', width: '48px', height: '48px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', boxShadow: '0 8px 20px rgba(168, 85, 247, 0.3)' }}>
                         <Settings size={24} />
                     </div>
                     <div>
                         <h1 style={{ fontSize: '24px', fontWeight: '900', margin: 0, color: 'var(--text-primary)', letterSpacing: '-0.5px' }}>OnlineMenu ADMIN</h1>
-
                     </div>
                 </div>
 
@@ -231,7 +230,7 @@ const AdminDashboard = () => {
                 )}
 
                 {activeTab === 'logs' && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ background: '#FFFFFF', borderRadius: '32px', border: '1px solid var(--border-color)', overflow: 'hidden', boxShadow: '0 12px 40px rgba(0,0,0,0.03)' }}>
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ background: 'var(--bg-secondary)', borderRadius: '32px', border: '1px solid var(--border-color)', overflow: 'hidden', boxShadow: '0 12px 40px rgba(0,0,0,0.2)' }}>
                         <div style={{ overflowX: 'auto' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '700px' }}>
                                 <thead style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-color)' }}>
@@ -423,7 +422,7 @@ const AdminDashboard = () => {
                 {isAdjusting && (
                     <div style={{ position: 'fixed', inset: 0, zIndex: 3000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsAdjusting(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }} />
-                        <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} style={{ background: 'white', padding: '40px', borderRadius: '32px', width: '100%', maxWidth: '440px', position: 'relative', zIndex: 3001, boxShadow: '0 25px 60px rgba(0,0,0,0.2)' }}>
+                        <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} style={{ background: 'var(--bg-secondary)', padding: '40px', borderRadius: '32px', width: '100%', maxWidth: '440px', position: 'relative', zIndex: 3001, boxShadow: '0 25px 60px rgba(0,0,0,0.4)', border: '1px solid var(--border-color)' }}>
                             <h2 style={{ marginBottom: '32px', fontSize: '28px', fontWeight: '900' }}>Корректировка</h2>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -452,8 +451,8 @@ const AdminDashboard = () => {
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsModalOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }} />
                         <motion.div initial={{ scale: 0.9, opacity: 0, y: 30 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 30 }}
                             style={{
-                                background: 'white', padding: '40px', borderRadius: '32px', width: '100%', maxWidth: '550px', position: 'relative', zIndex: 3001,
-                                maxHeight: '95vh', overflowY: 'auto', boxShadow: '0 30px 80px rgba(0,0,0,0.25)'
+                                background: 'var(--bg-secondary)', padding: '40px', borderRadius: '32px', width: '100%', maxWidth: '550px', position: 'relative', zIndex: 3001,
+                                maxHeight: '95vh', overflowY: 'auto', boxShadow: '0 30px 80px rgba(0,0,0,0.4)', border: '1px solid var(--border-color)'
                             }}
                         >
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>

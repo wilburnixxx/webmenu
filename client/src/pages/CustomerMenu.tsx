@@ -259,7 +259,7 @@ const CustomerMenu = () => {
             {/* Quick Actions Bar */}
             <div style={{
                 display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px',
-                padding: '12px 16px', background: 'var(--bg-base)',
+                padding: '12px 16px', background: 'rgba(10, 10, 11, 0.7)',
                 position: 'sticky', top: 'calc(56px + env(safe-area-inset-top, 0px))', zIndex: 998,
                 borderBottom: '1px solid var(--border-color)', backdropFilter: 'blur(20px)'
             }}>
@@ -271,8 +271,8 @@ const CustomerMenu = () => {
 
             {/* Category Scroll (Sticky/Non-Sticky Switch Base on scroll) */}
             <div style={{
-                background: 'rgba(255, 255, 255, 0.85)',
-                backdropFilter: 'blur(20px)',
+                background: 'rgba(10, 10, 11, 0.8)',
+                backdropFilter: 'blur(24px)',
                 padding: '14px 16px',
                 paddingLeft: 'max(16px, env(safe-area-inset-left))',
                 paddingRight: 'max(16px, env(safe-area-inset-right))',
@@ -318,8 +318,8 @@ const CustomerMenu = () => {
                                 alignItems: 'center',
                                 cursor: 'pointer',
                                 border: '1px solid var(--border-color)',
-                                boxShadow: '0 8px 30px rgba(0,0,0,0.05)',
-                                background: 'rgba(255,255,255,0.95)'
+                                boxShadow: '0 8px 30px rgba(0,0,0,0.2)',
+                                background: 'var(--bg-secondary)'
                             }}
                         >
                             <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
@@ -542,16 +542,16 @@ const CustomerMenu = () => {
                 {
                     selectedDish && (
                         <div style={{ position: 'fixed', inset: 0, zIndex: 5000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px' }}>
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedDish(null)} style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)' }} />
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedDish(null)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(12px)' }} />
                             <motion.div initial={{ scale: 0.9, opacity: 0, y: 40 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 40 }} transition={{ type: 'spring', damping: 25 }}
                                 style={{
-                                    width: '100%', maxWidth: '540px', background: '#FFFFFF', borderRadius: '32px', position: 'relative', zIndex: 5001,
-                                    overflow: 'hidden', boxShadow: '0 50px 120px rgba(0,0,0,0.15)', border: '1px solid var(--border-color)'
+                                    width: '100%', maxWidth: '540px', background: 'var(--bg-secondary)', borderRadius: '32px', position: 'relative', zIndex: 5001,
+                                    overflow: 'hidden', boxShadow: '0 50px 120px rgba(0,0,0,0.4)', border: '1px solid var(--border-color)'
                                 }}
                             >
                                 <div style={{ position: 'relative' }}>
                                     <img src={selectedDish.imageUrl} style={{ width: '100%', height: '340px', objectFit: 'cover' }} />
-                                    <button onClick={() => setSelectedDish(null)} style={{ position: 'absolute', top: '24px', right: '24px', background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: '16px', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}><X size={24} /></button>
+                                    <button onClick={() => setSelectedDish(null)} style={{ position: 'absolute', top: '24px', right: '24px', background: 'rgba(0,0,0,0.6)', border: 'none', borderRadius: '16px', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.2)', backdropFilter: 'blur(10px)' }}><X size={24} /></button>
                                 </div>
 
                                 <div style={{ padding: 'clamp(24px, 5vw, 40px)' }}>
@@ -586,13 +586,13 @@ const CustomerMenu = () => {
                 {
                     isCartOpen && (
                         <div style={{ position: 'fixed', inset: 0, zIndex: 3000, display: 'flex', justifyContent: 'center', alignItems: 'flex-end' }}>
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsCartOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)' }} />
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsCartOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(12px)' }} />
                             <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                                 style={{
-                                    width: '100%', maxWidth: '640px', background: '#FFFFFF',
+                                    width: '100%', maxWidth: '640px', background: 'var(--bg-base)',
                                     borderRadius: '40px 40px 0 0', position: 'relative', zIndex: 3001,
                                     height: 'auto', maxHeight: '95vh', display: 'flex', flexDirection: 'column',
-                                    boxShadow: '0 -20px 80px rgba(0,0,0,0.1)', border: '1px solid var(--border-color)'
+                                    boxShadow: '0 -20px 80px rgba(0,0,0,0.3)', border: '1px solid var(--border-color)'
                                 }}
                                 onClick={e => e.stopPropagation()}
                             >
@@ -657,13 +657,13 @@ const CustomerMenu = () => {
                 {
                     isAiOpen && (
                         <div style={{ position: 'fixed', inset: 0, zIndex: 4000, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px' }}>
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsAiOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)' }} />
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsAiOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(12px)' }} />
                             <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }}
                                 style={{
-                                    width: '100%', maxWidth: '440px', height: '650px', background: '#FFFFFF',
+                                    width: '100%', maxWidth: '440px', height: '650px', background: 'var(--bg-secondary)',
                                     borderRadius: '32px', position: 'relative', zIndex: 4001, overflow: 'hidden',
                                     display: 'flex', flexDirection: 'column',
-                                    boxShadow: '0 40px 100px rgba(0,0,0,0.12)', border: '1px solid var(--border-color)'
+                                    boxShadow: '0 40px 100px rgba(0,0,0,0.4)', border: '1px solid var(--border-color)'
                                 }}
                             >
                                 <header style={{
@@ -725,9 +725,9 @@ const CustomerMenu = () => {
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsStatusModalOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)' }} />
                             <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 25 }}
                                 style={{
-                                    width: '100%', maxWidth: '540px', background: '#FFFFFF', borderRadius: '40px 40px 0 0',
+                                    width: '100%', maxWidth: '540px', background: 'var(--bg-secondary)', borderRadius: '40px 40px 0 0',
                                     padding: '48px 32px', textAlign: 'center', position: 'relative', zIndex: 6001,
-                                    boxShadow: '0 -20px 80px rgba(0,0,0,0.1)', border: '1px solid var(--border-color)'
+                                    boxShadow: '0 -20px 80px rgba(0,0,0,0.4)', border: '1px solid var(--border-color)'
                                 }}
                             >
                                 <div style={{ background: 'var(--success)', width: '96px', height: '96px', borderRadius: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 32px', color: 'white', fontSize: '40px', boxShadow: '0 15px 35px rgba(74,222,128,0.3)' }}>✓</div>
