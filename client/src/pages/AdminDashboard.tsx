@@ -514,17 +514,17 @@ const AdminDashboard = () => {
                             <form onSubmit={(e) => { e.preventDefault(); saveMutation.mutate(editingDish); }} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                     <label style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-secondary)' }}>Название блюда</label>
-                                    <input value={editingDish.name} onChange={e => setEditingDish({ ...editingDish, name: e.target.value })} style={{ height: '52px', padding: '0 20px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', fontSize: '16px', fontWeight: '700' }} required />
+                                    <input value={editingDish.name} onChange={e => setEditingDish({ ...editingDish, name: e.target.value })} style={{ height: '52px', padding: '0 20px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)' }} required />
                                 </div>
 
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                         <label style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-secondary)' }}>Стоимость (₸)</label>
-                                        <input type="number" value={editingDish.price} onChange={e => setEditingDish({ ...editingDish, price: Number(e.target.value) })} style={{ height: '52px', padding: '0 20px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', fontSize: '18px', fontWeight: '900' }} required />
+                                        <input type="number" value={editingDish.price} onChange={e => setEditingDish({ ...editingDish, price: Number(e.target.value) })} style={{ height: '52px', padding: '0 20px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', fontSize: '18px', fontWeight: '900', color: 'var(--text-primary)' }} required />
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                         <label style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-secondary)' }}>Категория</label>
-                                        <select value={editingDish.category} onChange={e => setEditingDish({ ...editingDish, category: e.target.value })} style={{ height: '52px', padding: '0 20px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', fontWeight: '700' }}>
+                                        <select value={editingDish.category} onChange={e => setEditingDish({ ...editingDish, category: e.target.value })} style={{ height: '52px', padding: '0 20px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', fontWeight: '700', color: 'var(--text-primary)' }}>
                                             {categories?.map((cat: any) => <option key={cat.id} value={cat.name}>{cat.name}</option>)}
                                         </select>
                                     </div>
@@ -532,12 +532,12 @@ const AdminDashboard = () => {
 
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                     <label style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-secondary)' }}>Ссылка на фото (Unsplash / CDN)</label>
-                                    <input value={editingDish.imageUrl} onChange={e => setEditingDish({ ...editingDish, imageUrl: e.target.value })} style={{ height: '52px', padding: '0 20px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', fontSize: '14px' }} placeholder="https://images.unsplash.com/..." />
+                                    <input value={editingDish.imageUrl} onChange={e => setEditingDish({ ...editingDish, imageUrl: e.target.value })} style={{ height: '52px', padding: '0 20px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', fontSize: '14px', color: 'var(--text-primary)' }} placeholder="https://images.unsplash.com/..." />
                                 </div>
 
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                     <label style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-secondary)' }}>Описание для гостя</label>
-                                    <textarea value={editingDish.description} onChange={e => setEditingDish({ ...editingDish, description: e.target.value })} style={{ minHeight: '120px', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', resize: 'vertical', fontSize: '15px', lineHeight: '1.6' }} />
+                                    <textarea value={editingDish.description} onChange={e => setEditingDish({ ...editingDish, description: e.target.value })} style={{ minHeight: '120px', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', resize: 'vertical', fontSize: '15px', lineHeight: '1.6', color: 'var(--text-primary)' }} />
                                 </div>
 
                                 <div style={{ display: 'flex', gap: '14px', alignItems: 'center', background: 'var(--bg-secondary)', padding: '16px 20px', borderRadius: '16px', border: '1px solid var(--border-color)' }}>

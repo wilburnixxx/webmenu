@@ -221,8 +221,8 @@ const CustomerMenu = () => {
                 paddingTop: 'calc(env(safe-area-inset-top, 0px))',
                 minHeight: 'calc(56px + env(safe-area-inset-top, 0px))',
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                paddingLeft: 'max(16px, env(safe-area-inset-left))',
-                paddingRight: 'max(16px, env(safe-area-inset-right))',
+                paddingLeft: 'max(20px, env(safe-area-inset-left))',
+                paddingRight: 'max(20px, env(safe-area-inset-right))',
                 paddingBottom: '8px', borderBottom: '1px solid var(--border-color)'
             }}>
                 <div style={{ fontSize: '18px', fontWeight: '800', letterSpacing: '-0.5px' }}>
@@ -253,7 +253,7 @@ const CustomerMenu = () => {
 
             {/* Horizontal Promo Gallery */}
             {promos && promos.length > 0 && (
-                <div style={{ padding: '24px 16px 8px', overflowX: 'auto', display: 'flex', gap: '16px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                <div style={{ padding: '24px 20px 8px', overflowX: 'auto', display: 'flex', gap: '16px', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                     {promos.map((p: any) => (
                         <div key={p.id} style={{
                             minWidth: '280px', height: '160px', borderRadius: '24px',
@@ -279,7 +279,7 @@ const CustomerMenu = () => {
             {/* Quick Actions Bar */}
             <div style={{
                 display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px',
-                padding: '12px 8px', background: 'rgba(10, 10, 11, 0.7)',
+                padding: '12px 20px', background: 'rgba(10, 10, 11, 0.7)',
                 position: 'sticky', top: 'calc(56px + env(safe-area-inset-top, 0px))', zIndex: 998,
                 borderBottom: '1px solid var(--border-color)', backdropFilter: 'blur(20px)'
             }}>
@@ -325,7 +325,7 @@ const CustomerMenu = () => {
             </AnimatePresence>
 
             {/* Content Area */}
-            <main style={{ padding: '24px 16px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
+            <main style={{ padding: '24px 20px', display: 'flex', flexDirection: 'column', gap: '32px' }}>
 
                 <section className="card" style={{ padding: '24px', background: 'var(--bg-secondary)', borderRadius: '32px', border: '1px solid var(--border-color)', boxShadow: '0 8px 30px rgba(0,0,0,0.1)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
@@ -345,8 +345,13 @@ const CustomerMenu = () => {
                             <input
                                 type="range" min="1" max="10" step="1" value={hookahStrength}
                                 onChange={(e) => setHookahStrength(parseInt(e.target.value))}
-                                style={{ width: '100%', cursor: 'pointer', accentColor: 'var(--primary)' }}
+                                style={{ width: '100%', cursor: 'pointer', accentColor: 'var(--primary)', height: '8px', borderRadius: '4px' }}
                             />
+                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '8px', padding: '0 4px' }}>
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(val => (
+                                    <span key={val} style={{ fontSize: '9px', fontWeight: '950', opacity: hookahStrength === val ? 1 : 0.3, color: hookahStrength === val ? 'var(--primary)' : 'var(--text-tertiary)', transition: 'all 0.2s' }}>{val}</span>
+                                ))}
+                            </div>
                         </div>
 
                         {/* 2. Tobacco Selector */}

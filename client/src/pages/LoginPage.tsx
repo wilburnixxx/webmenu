@@ -83,7 +83,8 @@ const LoginPage = () => {
                             style={{
                                 width: '100%', height: '56px', padding: '0 16px 0 48px',
                                 borderRadius: '16px', border: '1px solid var(--border-color)',
-                                background: 'var(--bg-secondary)', fontSize: '15px', fontWeight: '600'
+                                background: 'var(--bg-secondary)', fontSize: '15px', fontWeight: '600',
+                                color: 'var(--text-primary)'
                             }}
                         />
                     </div>
@@ -100,7 +101,8 @@ const LoginPage = () => {
                             style={{
                                 width: '100%', height: '56px', padding: '0 16px 0 48px',
                                 borderRadius: '16px', border: '1px solid var(--border-color)',
-                                background: 'var(--bg-secondary)', fontSize: '15px', fontWeight: '600'
+                                background: 'var(--bg-secondary)', fontSize: '15px', fontWeight: '600',
+                                color: 'var(--text-primary)'
                             }}
                         />
                     </div>
