@@ -113,6 +113,7 @@ export const menuService = {
         }
     },
     createAdjustment: async (data: any) => (await api.post('/metrics/adjust', data)).data,
+    closeShift: async () => (await api.post('/shift/close')).data,
     sendMessage: async (messages: any[]) => (await api.post('/ai/chat', { messages })).data,
 
     // Промо-слайдер

@@ -103,6 +103,51 @@ const AdminDashboard = () => {
         onSuccess: () => alert('Шеф успешно обучен! 🧠✨')
     });
 
+    const closeShiftMutation = useMutation({
+        mutationFn: () => menuService.closeShift(),
+        onSuccess: (data: any[]) => {
+            queryClient.invalidateQueries({ queryKey: ['metrics'] });
+
+            // Generate and download report
+            if (data.length > 0) {
+                const BOM = "\uFEFF"; // UTF-8 BOM for Excel support
+                let csv = "№ Заказа;Дата и Время;Состав заказа;Сумма позиций;Итого\n";
+
+                data.forEach((order, index) => {
+                    const date = new Date(order.createdAt).toLocaleString();
+                    const composition = order.items.map((it: any) =>
+                        `${it.dish?.name || 'Товар'} x${it.quantity}`
+                    ).join(', ');
+                    const itemSums = order.items.map((it: any) =>
+                        `${it.price * it.quantity}₸`
+                    ).join(', ');
+
+                    csv += `${index + 1};${date};"${composition}";"${itemSums}";${order.totalPrice}₸\n`;
+                });
+
+                const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.setAttribute('href', url);
+                link.setAttribute('download', `report_shift_${new Date().toISOString().split('T')[0]}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                alert(`Касса закрыта! Отчет по ${data.length} заказам скачан.`);
+            } else {
+                alert('Касса закрыта! Заказов за смену не было.');
+            }
+        },
+        onError: (err: any) => alert('Ошибка при закрытии кассы: ' + err.message)
+    });
+
+    const handleCloseShift = () => {
+        if (window.confirm('Вы уверены, что хотите закрыть кассу? Это сбросит текущую выручку и сформирует отчет.')) {
+            closeShiftMutation.mutate();
+        }
+    };
+
     const createCatMutation = useMutation({
         mutationFn: (name: string) => menuService.createCategory(name),
         onSuccess: () => {
@@ -200,12 +245,17 @@ const AdminDashboard = () => {
                 </div>
 
 
-                <button className="btn-primary" onClick={() => {
-                    setEditingDish({ name: '', price: 0, category: categories?.[0]?.name || '', description: '', imageUrl: '', allergens: [], isAvailable: true });
-                    setIsModalOpen(true);
-                }} style={{ padding: '0 32px' }}>
-                    <Plus size={20} /> ДОБАВИТЬ ПОЗИЦИЮ
-                </button>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                    <button className="btn-secondary" onClick={handleCloseShift} style={{ background: 'rgba(255, 59, 48, 0.1)', color: 'var(--error)', borderColor: 'rgba(255, 59, 48, 0.2)' }}>
+                        ЗАКРЫТЬ КАССУ
+                    </button>
+                    <button className="btn-primary" onClick={() => {
+                        setEditingDish({ name: '', price: 0, category: categories?.[0]?.name || '', description: '', imageUrl: '', allergens: [], isAvailable: true });
+                        setIsModalOpen(true);
+                    }} style={{ padding: '0 32px' }}>
+                        <Plus size={20} /> ДОБАВИТЬ ПОЗИЦИЮ
+                    </button>
+                </div>
             </header>
 
             {/* Admin Stats Row (Responsive) */}

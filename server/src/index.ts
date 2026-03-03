@@ -294,9 +294,42 @@ app.post(['/ai/chat', '/api/ai/chat'], async (req, res) => {
 app.get(['/logs', '/api/logs'], checkAuth, (req, res) => safeQuery(res, () => prisma.actionLog.findMany({ orderBy: { createdAt: 'desc' }, take: 50 })));
 app.get(['/metrics', '/api/metrics'], checkAuth, async (req, res) => {
     try {
-        const orders = await prisma.order.findMany({ where: { status: { not: 'CANCELLED' } } });
-        res.json({ totalOrders: orders.length, totalRevenue: orders.reduce((sum, o) => sum + o.totalPrice, 0), totalDishes: await prisma.dish.count(), topDishes: [] });
+        const orders = await prisma.order.findMany({
+            where: {
+                status: { not: 'CANCELLED' },
+                isClosed: false
+            }
+        });
+        res.json({
+            totalOrders: orders.length,
+            totalRevenue: orders.reduce((sum, o) => sum + o.totalPrice, 0),
+            totalDishes: await prisma.dish.count(),
+            topDishes: []
+        });
     } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+app.post(['/shift/close', '/api/shift/close'], checkAuth, async (req, res) => {
+    try {
+        // 1. Get all active (not closed) orders that are not cancelled
+        const activeOrders = await prisma.order.findMany({
+            where: { isClosed: false, status: { not: 'CANCELLED' } },
+            include: { items: { include: { dish: true } } },
+            orderBy: { createdAt: 'asc' }
+        });
+
+        // 2. Mark them as closed
+        await prisma.order.updateMany({
+            where: { isClosed: false },
+            data: { isClosed: true }
+        });
+
+        await logAction('ЗАКРЫТИЕ КАССЫ', `Смена закрыта. Заказов: ${activeOrders.length}`, 'Админ');
+
+        res.json(activeOrders);
+    } catch (e: any) {
+        res.status(500).json({ error: e.message });
+    }
 });
 
 app.post(['/metrics/adjust', '/api/metrics/adjust'], async (req, res) => {
