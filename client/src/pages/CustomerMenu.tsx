@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { menuService, orderService, callService } from '../api';
-import { ShoppingBag, Send, X, Bell, Flame, Wind, Zap, CheckCircle, Clock, XCircle, Archive, Trash2, GripVertical, Sparkles, User, Package, Info } from 'lucide-react';
+import { ShoppingBag, Send, X, Bell, Flame, Wind, Zap, CheckCircle, Clock, XCircle, Archive, Trash2, GripVertical, Sparkles, User, Package, Info, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 
@@ -42,6 +42,7 @@ const CustomerMenu = () => {
     const [hookahStrength, setHookahStrength] = useState<number>(5);
     const [selectedTobacco, setSelectedTobacco] = useState<any>(null);
     const [selectedLiquid, setSelectedLiquid] = useState<any>(null);
+    const [isTobaccoModalOpen, setIsTobaccoModalOpen] = useState(false);
 
     const statusMap: Record<string, { label: string, color: string, icon: any }> = {
         PENDING: { label: 'ОЖИДАНИЕ', color: '#8E8E93', icon: <Clock size={18} /> },
@@ -362,25 +363,23 @@ const CustomerMenu = () => {
                             </div>
                         </div>
 
-                        {/* 2. Tobacco Selector */}
+                        {/* 2. Tobacco Selector Button */}
                         <div>
                             <span style={{ fontSize: '11px', fontWeight: '900', color: 'var(--text-tertiary)', display: 'block', marginBottom: '12px' }}>ТАБАК</span>
-                            <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px', scrollbarWidth: 'none' }}>
-                                {dishes?.filter(d => d.category === 'Табак').map((t: any) => (
-                                    <button
-                                        key={t.id} onClick={() => setSelectedTobacco(t)}
-                                        style={{
-                                            padding: '10px 16px', borderRadius: '12px', border: '1px solid',
-                                            borderColor: selectedTobacco?.id === t.id ? 'var(--primary)' : 'var(--border-color)',
-                                            background: selectedTobacco?.id === t.id ? 'var(--primary-bg-alpha)' : 'var(--bg-tertiary)',
-                                            color: selectedTobacco?.id === t.id ? 'var(--primary)' : 'var(--text-primary)',
-                                            fontSize: '13px', fontWeight: '700', whiteSpace: 'nowrap'
-                                        }}
-                                    >
-                                        {t.name}
-                                    </button>
-                                ))}
-                            </div>
+                            <button
+                                onClick={() => setIsTobaccoModalOpen(true)}
+                                style={{
+                                    width: '100%', height: '56px', borderRadius: '16px',
+                                    background: selectedTobacco ? 'var(--primary-bg-alpha)' : 'var(--bg-tertiary)',
+                                    border: '1px solid', borderColor: selectedTobacco ? 'var(--primary)' : 'var(--border-color)',
+                                    color: selectedTobacco ? 'var(--primary)' : 'var(--text-primary)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px',
+                                    cursor: 'pointer', transition: 'all 200ms'
+                                }}
+                            >
+                                <span style={{ fontWeight: '800' }}>{selectedTobacco ? selectedTobacco.name : 'Выбрать табак'}</span>
+                                <ChevronDown size={18} style={{ opacity: 0.5 }} />
+                            </button>
                         </div>
 
                         {/* 3. Liquid Selector */}
@@ -668,6 +667,63 @@ const CustomerMenu = () => {
                             </div>
 
                             <button onClick={() => setIsStatusModalOpen(false)} className="btn-primary" style={{ width: '100%', height: '56px', borderRadius: '16px', flexShrink: 0 }}>ПОНЯТНО</button>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Tobacco Selection Pop-up */}
+            <AnimatePresence>
+                {isTobaccoModalOpen && (
+                    <div
+                        onClick={() => setIsTobaccoModalOpen(false)}
+                        style={{ position: 'fixed', inset: 0, zIndex: 3000, display: 'flex', alignItems: 'flex-end', background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)' }}
+                    >
+                        <motion.div
+                            initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                                width: '100%', maxHeight: '85vh', background: 'var(--bg-base)', borderTopLeftRadius: '32px', borderTopRightRadius: '32px',
+                                padding: '24px 20px env(safe-area-inset-bottom, 24px)', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px',
+                                borderTop: '1px solid var(--border-color)'
+                            }}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: 'var(--bg-base)', zIndex: 10, paddingBottom: '12px' }}>
+                                <div>
+                                    <h2 style={{ fontSize: '20px', fontWeight: '900', margin: 0 }}>ВЫБОР ТАБАКА</h2>
+                                    <p style={{ fontSize: '11px', fontWeight: '800', opacity: 0.5, letterSpacing: '1px', marginTop: '4px' }}>ВЫБЕРИТЕ ВКУС ПОД НАСТРОЕНИЕ</p>
+                                </div>
+                                <button onClick={() => setIsTobaccoModalOpen(false)} style={{ background: 'var(--bg-tertiary)', border: 'none', color: 'var(--text-primary)', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                {dishes?.filter(d => d.category === 'Табак').map((t: any) => (
+                                    <div
+                                        key={t.id}
+                                        onClick={() => { setSelectedTobacco(t); setIsTobaccoModalOpen(false); }}
+                                        style={{
+                                            background: 'var(--bg-secondary)', borderRadius: '24px', overflow: 'hidden', border: '1px solid',
+                                            borderColor: selectedTobacco?.id === t.id ? 'var(--primary)' : 'var(--border-color)',
+                                            display: 'flex', flexDirection: 'column', transition: 'all 0.2s', position: 'relative'
+                                        }}
+                                    >
+                                        <div style={{ width: '100%', height: '100px', overflow: 'hidden' }}>
+                                            <img src={t.imageUrl} alt={t.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        </div>
+                                        <div style={{ padding: '12px' }}>
+                                            <h3 style={{ fontSize: '14px', fontWeight: '800', margin: '0 0 4px 0' }}>{t.name}</h3>
+                                            <p style={{ fontSize: '10px', opacity: 0.6, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.4' }}>{t.description}</p>
+                                        </div>
+                                        {selectedTobacco?.id === t.id && (
+                                            <div style={{ position: 'absolute', top: '8px', right: '8px', background: 'var(--primary)', color: 'white', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+                                                <Zap size={10} fill="white" />
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
                         </motion.div>
                     </div>
                 )}

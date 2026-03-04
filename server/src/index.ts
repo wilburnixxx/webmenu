@@ -79,7 +79,7 @@ app.post(['/auth/login', '/api/auth/login'], async (req, res) => {
 app.get(['/ai/instructions', '/api/ai/instructions'], checkAuth, async (req, res) => {
     try {
         const instruction = await prisma.aIInstruction.findFirst({ orderBy: { version: 'desc' } });
-        res.json(instruction || { promptText: "Ты - Алекс, виртуальный шеф-повар." });
+        res.json(instruction || { promptText: "Ты - Марк, виртуальный кальянный мастер-консультант." });
     } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
