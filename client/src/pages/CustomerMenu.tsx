@@ -234,8 +234,8 @@ const CustomerMenu = () => {
                 paddingRight: 'max(20px, env(safe-area-inset-right))',
                 paddingBottom: '8px', borderBottom: '1px solid var(--border-color)'
             }}>
-                <div style={{ fontSize: '18px', fontWeight: '800', letterSpacing: '-0.5px' }}>
-                    HOOKAH<span style={{ color: 'var(--primary)' }}>LOUNGE</span>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <img src="/logo.png" alt="Logo" style={{ height: '26px', width: 'auto', objectFit: 'contain' }} onError={(e) => (e.currentTarget.style.display = 'none')} />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div className="status-indicator" style={{ marginRight: '8px' }} />

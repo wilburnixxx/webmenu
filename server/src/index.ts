@@ -1,4 +1,3 @@
-// @ts-nocheck
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -9,7 +8,7 @@ dotenv.config();
 
 console.log('🏁 Запуск сервера v2.1.5 - Category Reordering...');
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT: number = Number(process.env.PORT) || 5000;
 
 const prisma = new PrismaClient();
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
@@ -22,32 +21,32 @@ app.use((req, res, next) => {
     next();
 });
 
-const logAction = async (action, details, staffName = 'Система') => {
+const logAction = async (action: string, details: string, staffName: string = 'Система') => {
     try {
         await prisma.actionLog.create({ data: { action, details, staffName } });
-    } catch (e) { console.error('⚠️ Ошибка лога:', e.message); }
+    } catch (e: any) { console.error('⚠️ Ошибка лога:', e.message); }
 };
 
-app.get('/', (req, res) => res.send('<h1>QR Menu Server v2.1.5</h1>'));
+app.get('/', (req: any, res: any) => res.send('<h1>QR Menu Server v2.1.5</h1>'));
 
 app.get('/health', async (req, res) => {
     try {
         await prisma.$queryRaw`SELECT 1`;
         res.json({ status: 'ok', db: 'up' });
-    } catch (e) { res.status(500).json({ status: 'error', db: 'down', err: e.message }); }
+    } catch (e: any) { res.status(500).json({ status: 'error', db: 'down', err: e.message }); }
 });
 
-const safeQuery = async (res, fn) => {
+const safeQuery = async (res: any, fn: () => Promise<any>) => {
     try { res.json(await fn()); }
-    catch (e) {
+    catch (e: any) {
         console.error('❌ Ошибка:', e.message);
         res.status(500).json({ error: e.message });
     }
 };
 
-const checkAuth = (req, res, next) => {
+const checkAuth = (req: any, res: any, next: any) => {
     const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (typeof authHeader !== 'string' || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ error: 'Доступ запрещен. Требуется авторизация.' });
     }
     const token = authHeader.split(' ')[1];
@@ -56,9 +55,7 @@ const checkAuth = (req, res, next) => {
     }
     next();
 };
-
-// --- AUTH ---
-app.post(['/auth/login', '/api/auth/login'], async (req, res) => {
+app.post(['/auth/login', '/api/auth/login'], async (req: any, res: any) => {
     const { login, password } = req.body;
     const ADMIN_LOGIN = process.env.ADMIN_LOGIN || 'admin';
     const ADMIN_PASS = process.env.ADMIN_PASS || 'admin777';
@@ -74,13 +71,11 @@ app.post(['/auth/login', '/api/auth/login'], async (req, res) => {
 
     res.status(401).json({ error: 'Неверный логин или пароль' });
 });
-
-// --- AI ИНСТРУКЦИИ ---
 app.get(['/ai/instructions', '/api/ai/instructions'], checkAuth, async (req, res) => {
     try {
         const instruction = await prisma.aIInstruction.findFirst({ orderBy: { version: 'desc' } });
         res.json(instruction || { promptText: "Ты - Марк, виртуальный кальянный мастер-консультант." });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
 app.post(['/ai/instructions', '/api/ai/instructions'], checkAuth, async (req, res) => {
@@ -91,13 +86,11 @@ app.post(['/ai/instructions', '/api/ai/instructions'], checkAuth, async (req, re
         });
         await logAction('ОБУЧЕНИЕ ИИ', `Новая версия v${result.version}`, 'Админ');
         res.json(result);
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
+app.get(['/categories', '/api/categories'], (req: any, res: any) => safeQuery(res, () => prisma.category.findMany({ orderBy: { order: 'asc' } })));
 
-// --- КАТЕГОРИИ (Сортировка) ---
-app.get(['/categories', '/api/categories'], (req, res) => safeQuery(res, () => prisma.category.findMany({ orderBy: { order: 'asc' } })));
-
-app.post(['/categories', '/api/categories'], checkAuth, async (req, res) => {
+app.post(['/categories', '/api/categories'], checkAuth, async (req: any, res: any) => {
     try {
         const maxOrder = await prisma.category.aggregate({ _max: { order: true } });
         const result = await prisma.category.upsert({
@@ -106,10 +99,10 @@ app.post(['/categories', '/api/categories'], checkAuth, async (req, res) => {
             create: { name: req.body.name, order: (maxOrder._max.order || 0) + 1 }
         });
         res.json(result);
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
-app.post(['/categories/reorder', '/api/categories/reorder'], checkAuth, async (req, res) => {
+app.post(['/categories/reorder', '/api/categories/reorder'], checkAuth, async (req: any, res: any) => {
     try {
         const { categories } = req.body;
         await prisma.$transaction(
@@ -122,42 +115,39 @@ app.post(['/categories/reorder', '/api/categories/reorder'], checkAuth, async (r
     } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
-app.patch(['/categories/:id', '/api/categories/:id'], checkAuth, async (req, res) => {
+app.patch(['/categories/:id', '/api/categories/:id'], checkAuth, async (req: any, res: any) => {
     try {
         const result = await prisma.category.update({
             where: { id: req.params.id },
             data: { order: parseInt(req.body.order) }
         });
         res.json(result);
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
-app.delete(['/categories/:id', '/api/categories/:id'], checkAuth, async (req, res) => {
+app.delete(['/categories/:id', '/api/categories/:id'], checkAuth, async (req: any, res: any) => {
     try {
         const result = await prisma.category.delete({ where: { id: req.params.id } });
         res.json(result);
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
-// --- МЕНЮ ---
-app.get(['/menu', '/api/menu'], async (req, res) => {
+app.get(['/menu', '/api/menu'], async (req: any, res: any) => {
     try {
         const categories = await prisma.category.findMany({ orderBy: { order: 'asc' } });
         const dishes = await prisma.dish.findMany({ orderBy: { order: 'asc' } });
-
-        // Сортируем блюда согласно порядку категорий (первичный) и их внутреннему порядку (вторичный)
-        const catMap = categories.reduce((acc, cat, idx) => ({ ...acc, [cat.name]: idx }), {});
-        const sortedDishes = dishes.sort((a, b) => {
+        const catMap: any = categories.reduce((acc: any, cat: any, idx) => ({ ...acc, [cat.name]: idx }), {});
+        const sortedDishes = dishes.sort((a: any, b: any) => {
             const catDiff = (catMap[a.category] || 99) - (catMap[b.category] || 99);
             if (catDiff !== 0) return catDiff;
-            return (a.order || 0) - (b.order || 0);
+            return ((a.order || 0) as number) - ((b.order || 0) as number);
         });
 
         res.json(sortedDishes);
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
-app.post(['/dishes', '/api/dishes'], async (req, res) => {
+app.post(['/dishes', '/api/dishes'], async (req: any, res: any) => {
     try {
         const maxOrderResult = await prisma.dish.aggregate({ _max: { order: true } });
         const result = await prisma.dish.create({
@@ -168,7 +158,7 @@ app.post(['/dishes', '/api/dishes'], async (req, res) => {
             }
         });
         res.json(result);
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
 app.post(['/dishes/reorder', '/api/dishes/reorder'], checkAuth, async (req, res) => {
@@ -184,28 +174,26 @@ app.post(['/dishes/reorder', '/api/dishes/reorder'], checkAuth, async (req, res)
     } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
-app.put(['/dishes/:id', '/api/dishes/:id'], async (req, res) => {
+app.put(['/dishes/:id', '/api/dishes/:id'], async (req: any, res: any) => {
     try {
         const data = { ...req.body, price: parseFloat(req.body.price) || 0 };
         delete data.id;
         const result = await prisma.dish.update({ where: { id: req.params.id }, data });
         res.json(result);
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
-app.delete(['/dishes/:id', '/api/dishes/:id'], async (req, res) => {
+app.delete(['/dishes/:id', '/api/dishes/:id'], async (req: any, res: any) => {
     try {
-        await prisma.$transaction(async (tx) => {
+        await prisma.$transaction(async (tx: any) => {
             await tx.orderItem.deleteMany({ where: { dishId: req.params.id } });
             const dish = await tx.dish.delete({ where: { id: req.params.id } });
             await logAction('УДАЛЕНИЕ БЛЮДА', `Удалено: ${dish.name}`, 'Админ');
         });
         res.json({ success: true });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
-
-// --- ЗАКАЗЫ ---
-app.post(['/orders', '/api/orders'], async (req, res) => {
+app.post(['/orders', '/api/orders'], async (req: any, res: any) => {
     try {
         const { tableNumber, items, totalPrice, comments } = req.body;
         console.log('📦 Новый заказ:', { tableNumber, itemCount: items?.length, totalPrice });
@@ -242,44 +230,38 @@ app.post(['/orders', '/api/orders'], async (req, res) => {
     }
 });
 
-app.get(['/orders', '/api/orders'], checkAuth, (req, res) => safeQuery(res, () => prisma.order.findMany({ include: { items: { include: { dish: true } } }, orderBy: { createdAt: 'desc' } })));
+app.get(['/orders', '/api/orders'], checkAuth, (req: any, res: any) => safeQuery(res, () => prisma.order.findMany({ include: { items: { include: { dish: true } } }, orderBy: { createdAt: 'desc' } })));
+app.get(['/orders/:id', '/api/orders/:id'], (req: any, res: any) => safeQuery(res, () => prisma.order.findUnique({ where: { id: req.params.id }, include: { items: { include: { dish: true } } } })));
 
-// GET /orders/:id allowed for guests to poll status
-app.get(['/orders/:id', '/api/orders/:id'], (req, res) => safeQuery(res, () => prisma.order.findUnique({ where: { id: req.params.id }, include: { items: { include: { dish: true } } } })));
-
-app.patch(['/orders/:id', '/api/orders/:id'], checkAuth, async (req, res) => {
+app.patch(['/orders/:id', '/api/orders/:id'], checkAuth, async (req: any, res: any) => {
     const result = await prisma.order.update({ where: { id: req.params.id }, data: { status: req.body.status } });
     await logAction('СТАТУС ЗАКАЗА', `Заказ ${result.id.slice(0, 5)} -> ${req.body.status}`, 'Официант');
     res.json(result);
 });
-
-// --- ВЫЗОВ ОФИЦИАНТА ---
 app.post(['/calls', '/api/calls'], async (req, res) => {
     try {
         const { tableNumber, type } = req.body;
         const result = await prisma.staffCall.create({ data: { tableNumber: String(tableNumber), type: type || 'MASTER' } });
         await logAction('ВЫЗОВ', `${type || 'МАСТЕР'} (Стол ${tableNumber})`, 'Гость');
         res.json(result);
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
-app.get(['/calls', '/api/calls'], checkAuth, (req, res) => safeQuery(res, () => prisma.staffCall.findMany({ where: { status: 'PENDING' }, orderBy: { createdAt: 'desc' } })));
+app.get(['/calls', '/api/calls'], checkAuth, (req: any, res: any) => safeQuery(res, () => prisma.staffCall.findMany({ where: { status: 'PENDING' }, orderBy: { createdAt: 'desc' } })));
 
 app.patch(['/calls/:id', '/api/calls/:id'], checkAuth, async (req, res) => {
     try {
         const result = await prisma.staffCall.update({ where: { id: req.params.id }, data: { status: 'DONE' } });
         res.json(result);
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
-
-// --- AI CHAT ---
 app.post(['/ai/chat', '/api/ai/chat'], async (req, res) => {
     try {
         const { messages } = req.body;
         const dishes = await prisma.dish.findMany({ where: { isAvailable: true } });
         const menuContext = dishes.map(d => `${d.name} (${d.price}₽) - ${d.description}`).join('\n');
         const instruction = await prisma.aIInstruction.findFirst({ orderBy: { version: 'desc' } });
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
         const prompt = `${instruction?.promptText || ''}\n\nМеню:\n${menuContext}\n\nОтветь на: ${JSON.stringify(messages)}`;
         const result = await model.generateContent(prompt);
         res.json({ text: result.response.text() });
@@ -289,9 +271,7 @@ app.post(['/ai/chat', '/api/ai/chat'], async (req, res) => {
         res.status(isQuota ? 429 : 500).json({ error: e.message });
     }
 });
-
-// --- LOGS & METRICS ---
-app.get(['/logs', '/api/logs'], checkAuth, (req, res) => safeQuery(res, () => prisma.actionLog.findMany({ orderBy: { createdAt: 'desc' }, take: 50 })));
+app.get(['/logs', '/api/logs'], checkAuth, (req: any, res: any) => safeQuery(res, () => prisma.actionLog.findMany({ orderBy: { createdAt: 'desc' }, take: 50 })));
 app.get(['/metrics', '/api/metrics'], checkAuth, async (req, res) => {
     try {
         const orders = await prisma.order.findMany({
@@ -306,19 +286,16 @@ app.get(['/metrics', '/api/metrics'], checkAuth, async (req, res) => {
             totalDishes: await prisma.dish.count(),
             topDishes: []
         });
-    } catch (e) { res.status(500).json({ error: e.message }); }
+    } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
-app.post(['/shift/close', '/api/shift/close'], checkAuth, async (req, res) => {
+app.post(['/shift/close', '/api/shift/close'], checkAuth, async (req: any, res: any) => {
     try {
-        // 1. Get all active (not closed) orders that are not cancelled
         const activeOrders = await prisma.order.findMany({
             where: { isClosed: false, status: { not: 'CANCELLED' } },
             include: { items: { include: { dish: true } } },
             orderBy: { createdAt: 'asc' }
         });
-
-        // 2. Mark them as closed
         await prisma.order.updateMany({
             where: { isClosed: false },
             data: { isClosed: true }
@@ -332,7 +309,7 @@ app.post(['/shift/close', '/api/shift/close'], checkAuth, async (req, res) => {
     }
 });
 
-app.post(['/metrics/adjust', '/api/metrics/adjust'], async (req, res) => {
+app.post(['/metrics/adjust', '/api/metrics/adjust'], async (req: any, res: any) => {
     try {
         const { metricName, value, note } = req.body;
         await logAction('КОРРЕКТИРОВКА', `${metricName}: ${value} (${note})`, 'Руководитель');
@@ -341,9 +318,9 @@ app.post(['/metrics/adjust', '/api/metrics/adjust'], async (req, res) => {
 });
 
 // --- PROMOS ---
-app.get(['/promos', '/api/promos'], (req, res) => safeQuery(res, () => prisma.promo.findMany({ where: { isActive: true }, orderBy: { createdAt: 'desc' } })));
+app.get(['/promos', '/api/promos'], (req: any, res: any) => safeQuery(res, () => prisma.promo.findMany({ where: { isActive: true }, orderBy: { createdAt: 'desc' } })));
 
-app.post(['/promos', '/api/promos'], checkAuth, async (req, res) => {
+app.post(['/promos', '/api/promos'], checkAuth, async (req: any, res: any) => {
     try {
         const result = await prisma.promo.create({ data: req.body });
         await logAction('НОВОЕ ПРОМО', `Добавлено промо: ${req.body.title || 'Без названия'}`, 'Админ');
@@ -351,7 +328,7 @@ app.post(['/promos', '/api/promos'], checkAuth, async (req, res) => {
     } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
-app.delete(['/promos/:id', '/api/promos/:id'], checkAuth, async (req, res) => {
+app.delete(['/promos/:id', '/api/promos/:id'], checkAuth, async (req: any, res: any) => {
     try {
         await prisma.promo.delete({ where: { id: req.params.id } });
         res.json({ success: true });
