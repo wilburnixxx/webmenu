@@ -29,7 +29,7 @@ const logAction = async (action: string, details: string, staffName: string = '�
 
 app.get('/', (req: any, res: any) => res.send('<h1>QR Menu Server v2.1.5</h1>'));
 
-app.get('/health', async (req, res) => {
+app.get('/health', async (req: any, res: any) => {
     try {
         await prisma.$queryRaw`SELECT 1`;
         res.json({ status: 'ok', db: 'up' });
@@ -71,14 +71,14 @@ app.post(['/auth/login', '/api/auth/login'], async (req: any, res: any) => {
 
     res.status(401).json({ error: 'Неверный логин или пароль' });
 });
-app.get(['/ai/instructions', '/api/ai/instructions'], checkAuth, async (req, res) => {
+app.get(['/ai/instructions', '/api/ai/instructions'], checkAuth, async (req: any, res: any) => {
     try {
         const instruction = await prisma.aIInstruction.findFirst({ orderBy: { version: 'desc' } });
         res.json(instruction || { promptText: "Ты - Марк, виртуальный кальянный мастер-консультант." });
     } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
-app.post(['/ai/instructions', '/api/ai/instructions'], checkAuth, async (req, res) => {
+app.post(['/ai/instructions', '/api/ai/instructions'], checkAuth, async (req: any, res: any) => {
     try {
         const { promptText } = req.body;
         const result = await prisma.aIInstruction.create({
@@ -161,7 +161,7 @@ app.post(['/dishes', '/api/dishes'], async (req: any, res: any) => {
     } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
 
-app.post(['/dishes/reorder', '/api/dishes/reorder'], checkAuth, async (req, res) => {
+app.post(['/dishes/reorder', '/api/dishes/reorder'], checkAuth, async (req: any, res: any) => {
     try {
         const { dishes } = req.body;
         await prisma.$transaction(
@@ -238,7 +238,7 @@ app.patch(['/orders/:id', '/api/orders/:id'], checkAuth, async (req: any, res: a
     await logAction('СТАТУС ЗАКАЗА', `Заказ ${result.id.slice(0, 5)} -> ${req.body.status}`, 'Официант');
     res.json(result);
 });
-app.post(['/calls', '/api/calls'], async (req, res) => {
+app.post(['/calls', '/api/calls'], async (req: any, res: any) => {
     try {
         const { tableNumber, type } = req.body;
         const result = await prisma.staffCall.create({ data: { tableNumber: String(tableNumber), type: type || 'MASTER' } });
@@ -249,13 +249,13 @@ app.post(['/calls', '/api/calls'], async (req, res) => {
 
 app.get(['/calls', '/api/calls'], checkAuth, (req: any, res: any) => safeQuery(res, () => prisma.staffCall.findMany({ where: { status: 'PENDING' }, orderBy: { createdAt: 'desc' } })));
 
-app.patch(['/calls/:id', '/api/calls/:id'], checkAuth, async (req, res) => {
+app.patch(['/calls/:id', '/api/calls/:id'], checkAuth, async (req: any, res: any) => {
     try {
         const result = await prisma.staffCall.update({ where: { id: req.params.id }, data: { status: 'DONE' } });
         res.json(result);
     } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
-app.post(['/ai/chat', '/api/ai/chat'], async (req, res) => {
+app.post(['/ai/chat', '/api/ai/chat'], async (req: any, res: any) => {
     try {
         const { messages } = req.body;
         const dishes = await prisma.dish.findMany({ where: { isAvailable: true } });
@@ -272,7 +272,7 @@ app.post(['/ai/chat', '/api/ai/chat'], async (req, res) => {
     }
 });
 app.get(['/logs', '/api/logs'], checkAuth, (req: any, res: any) => safeQuery(res, () => prisma.actionLog.findMany({ orderBy: { createdAt: 'desc' }, take: 50 })));
-app.get(['/metrics', '/api/metrics'], checkAuth, async (req, res) => {
+app.get(['/metrics', '/api/metrics'], checkAuth, async (req: any, res: any) => {
     try {
         const orders = await prisma.order.findMany({
             where: {
