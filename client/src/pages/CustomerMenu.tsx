@@ -135,9 +135,12 @@ const CustomerMenu = () => {
             hookahConfigs
         ].filter(Boolean).join('\n\n');
 
+        const serviceCharge = Math.round(totalPrice * 0.1);
+        const grandTotal = totalPrice + serviceCharge;
+
         orderMutation.mutate({
             tableNumber,
-            totalPrice: totalPrice,
+            totalPrice: grandTotal,
             items: (cart as any[]).map((item: any) => {
                 let dishId = item.dish.id;
                 // If it's a virtual hookah item, use the original tobacco ID or find a fallback tobacco dish ID
@@ -578,11 +581,22 @@ const CustomerMenu = () => {
                                     }}
                                 />
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px' }}>
-                                <span style={{ fontSize: '20px', fontWeight: '900' }}>ИТОГО</span>
-                                <span style={{ fontSize: '20px', fontWeight: '900', color: 'var(--primary)' }}>{totalPrice} ₸</span>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '32px', background: 'var(--bg-tertiary)', padding: '20px', borderRadius: '24px', border: '1px solid var(--border-color)' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '13px', fontWeight: '800', opacity: 0.6 }}>Сумма</span>
+                                    <span style={{ fontSize: '14px', fontWeight: '800' }}>{totalPrice} ₸</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '13px', fontWeight: '800', opacity: 0.6 }}>Обслуживание (10%)</span>
+                                    <span style={{ fontSize: '14px', fontWeight: '800' }}>{Math.round(totalPrice * 0.1)} ₸</span>
+                                </div>
+                                <div style={{ height: '1px', background: 'var(--border-color)', margin: '8px 0' }} />
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '18px', fontWeight: '950' }}>ИТОГО</span>
+                                    <span style={{ fontSize: '20px', fontWeight: '950', color: 'var(--primary)', textShadow: '0 0 15px var(--primary-bg-alpha)' }}>{totalPrice + Math.round(totalPrice * 0.1)} ₸</span>
+                                </div>
                             </div>
-                            <button onClick={handleCheckout} className="btn-primary" style={{ width: '100%', height: '60px', borderRadius: '16px' }}>
+                            <button onClick={handleCheckout} className="btn-primary" style={{ width: '100%', height: '64px', borderRadius: '16px', boxShadow: '0 8px 25px rgba(168, 85, 247, 0.4)' }}>
                                 {orderMutation.isPending ? 'ОФОРМЛЯЕМ...' : 'ЗАКАЗАТЬ'}
                             </button>
                         </motion.div>
