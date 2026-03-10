@@ -22,7 +22,7 @@
 
 ## 🔑 Переменные окружения (Variables)
 Добавьте эти ключи в разделе **Settings -> Variables** на Railway:
-*   `GEMINI_API_KEY`: Ваш ключ от Google AI
+*   `GROQ_API_KEY`: Ваш ключ от GroqCloud
 *   `DATABASE_URL`: (уже добавлена Railway)
 *   `NODE_ENV`: `production`
 

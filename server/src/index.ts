@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { PrismaClient } from '@prisma/client';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import Groq from 'groq-sdk';
 
 dotenv.config();
 
@@ -11,7 +11,7 @@ const app = express();
 const PORT: number = Number(process.env.PORT) || 5000;
 
 const prisma = new PrismaClient();
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || '' });
 
 app.use(cors({ origin: '*', methods: '*', allowedHeaders: '*' }));
 app.use(express.json());
@@ -259,12 +259,27 @@ app.post(['/ai/chat', '/api/ai/chat'], async (req: any, res: any) => {
     try {
         const { messages } = req.body;
         const dishes = await prisma.dish.findMany({ where: { isAvailable: true } });
-        const menuContext = dishes.map(d => `${d.name} (${d.price}₽) - ${d.description}`).join('\n');
+        const menuContext = dishes.map(d => `[Категория: ${d.category || 'Разное'}] ${d.name} (${d.price}₽) - ${d.description}`).join('\n');
         const instruction = await prisma.aIInstruction.findFirst({ orderBy: { version: 'desc' } });
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-        const prompt = `${instruction?.promptText || ''}\n\nМеню:\n${menuContext}\n\nОтветь на: ${JSON.stringify(messages)}`;
-        const result = await model.generateContent(prompt);
-        res.json({ text: result.response.text() });
+        const systemRules = "ОТВЕЧАЙ МАКСИМАЛЬНО КРАТКО (2-3 предложения). БЕЗ ВОДЫ. ПРАВИЛО №1: Пока гость не выбрал кальян/табак, ТЕБЕ КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО упоминать напитки, еду и другие товары. Консультируй ТОЛЬКО по вкусам и крепости табаков. ПРАВИЛО №2: Предлагай напитки ТОЛЬКО как доп. продажу (апселл), когда кальян уже выбран. НИКАКИХ markdown таблиц. Не перечисляй всё меню. Ты кальянный мастер Марк. НИКОГДА не говори, что ты ИИ.";
+        const systemPrompt = `${instruction?.promptText || ''}\n\n${systemRules}\n\nДоступное меню:\n${menuContext}`;
+        
+        let apiMessages: any[] = [{ role: "system", content: systemPrompt }];
+        if (Array.isArray(messages)) {
+            apiMessages = apiMessages.concat(messages.map(m => ({
+                role: m.role || "user",
+                content: m.content || m.text || ""
+            })));
+        } else {
+            apiMessages.push({ role: "user", content: JSON.stringify(messages) });
+        }
+
+        const chatResponse = await groq.chat.completions.create({
+            model: "llama-3.3-70b-versatile",
+            messages: apiMessages
+        });
+        const text = chatResponse.choices?.[0]?.message?.content;
+        res.json({ text: typeof text === 'string' ? text : "Ошибка при получении ответа" });
     } catch (e: any) {
         console.error('AI Error:', e.message);
         const isQuota = e.message?.includes('429') || e.message?.includes('quota');

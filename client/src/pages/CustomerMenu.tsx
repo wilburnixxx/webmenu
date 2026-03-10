@@ -227,12 +227,13 @@ const CustomerMenu = () => {
             {/* Header */}
             <header className="glass" style={{
                 position: 'sticky', top: 0, zIndex: 1000,
-                paddingTop: 'calc(env(safe-area-inset-top, 0px))',
-                minHeight: 'calc(56px + env(safe-area-inset-top, 0px))',
+                paddingTop: 'env(safe-area-inset-top, 0px)',
+                minHeight: '56px',
                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                 paddingLeft: 'max(20px, env(safe-area-inset-left))',
                 paddingRight: 'max(20px, env(safe-area-inset-right))',
-                paddingBottom: '8px', borderBottom: '1px solid var(--border-color)'
+                paddingBottom: '4px', borderBottom: '1px solid var(--border-color)',
+                width: '100%'
             }}>
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                     <img src="/logo.png" alt="Logo" style={{ height: '26px', width: 'auto', objectFit: 'contain' }} onError={(e) => (e.currentTarget.style.display = 'none')} />
@@ -287,10 +288,11 @@ const CustomerMenu = () => {
 
             {/* Quick Actions Bar */}
             <div style={{
-                display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px',
-                padding: '12px 20px', background: 'rgba(10, 10, 11, 0.7)',
-                position: 'sticky', top: 'calc(56px + env(safe-area-inset-top, 0px))', zIndex: 998,
-                borderBottom: '1px solid var(--border-color)', backdropFilter: 'blur(20px)'
+                display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px',
+                padding: '10px 20px', background: 'rgba(10, 10, 11, 0.85)',
+                position: 'sticky', top: '56px', zIndex: 998,
+                borderBottom: '1px solid var(--border-color)', backdropFilter: 'blur(20px)',
+                width: '100%'
             }}>
                 <ActionButton icon={<Bell size={18} />} label="МАСТЕР" onClick={() => handleCallAction('MASTER', 'Мастер скоро подойдет! 💨')} active={isCalling} />
                 <ActionButton icon={<Flame size={18} />} label="УГЛИ" onClick={() => handleCallAction('COALS', 'Угли уже в пути! 🔥')} active={isCalling} />
@@ -430,7 +432,7 @@ const CustomerMenu = () => {
                                     border: '1px solid var(--border-color)', borderRadius: '16px',
                                     color: 'var(--primary)', display: 'flex', alignItems: 'center',
                                     justifyContent: 'center', gap: '8px', fontSize: '11px', fontWeight: '900',
-                                    cursor: 'pointer'
+                                    cursor: 'pointer', transition: 'all 0.2s'
                                 }}
                             >
                                 <Sparkles size={16} /> ИИ
@@ -680,25 +682,28 @@ const CustomerMenu = () => {
                         style={{ position: 'fixed', inset: 0, zIndex: 3000, display: 'flex', alignItems: 'flex-end', background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)' }}
                     >
                         <motion.div
-                            initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                            initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={{ type: 'spring', damping: 30, stiffness: 200 }}
                             onClick={(e) => e.stopPropagation()}
                             style={{
-                                width: '100%', maxHeight: '85vh', background: 'var(--bg-base)', borderTopLeftRadius: '32px', borderTopRightRadius: '32px',
-                                padding: '24px 20px env(safe-area-inset-bottom, 24px)', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px',
-                                borderTop: '1px solid var(--border-color)'
+                                width: '100%', maxHeight: '90vh', background: 'var(--bg-base)', borderTopLeftRadius: '32px', borderTopRightRadius: '32px',
+                                padding: '12px 20px calc(env(safe-area-inset-bottom, 24px) + 20px)', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px',
+                                borderTop: '1px solid var(--border-color)', boxShadow: '0 -10px 40px rgba(0,0,0,0.5)'
                             }}
                         >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: 'var(--bg-base)', zIndex: 10, paddingBottom: '12px' }}>
+                            {/* Pull Handle */}
+                            <div style={{ width: '40px', height: '4px', background: 'var(--border-color)', borderRadius: '2px', margin: '0 auto', flexShrink: 0 }} />
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: '-12px', background: 'var(--bg-base)', zIndex: 10, padding: '12px 0' }}>
                                 <div>
-                                    <h2 style={{ fontSize: '20px', fontWeight: '900', margin: 0 }}>ВЫБОР ТАБАКА</h2>
-                                    <p style={{ fontSize: '11px', fontWeight: '800', opacity: 0.5, letterSpacing: '1px', marginTop: '4px' }}>ВЫБЕРИТЕ ВКУС ПОД НАСТРОЕНИЕ</p>
+                                    <h2 style={{ fontSize: '22px', fontWeight: '950', margin: 0, letterSpacing: '-0.5px' }}>ВЫБОР ТАБАКА</h2>
+                                    <p style={{ fontSize: '11px', fontWeight: '800', opacity: 0.5, letterSpacing: '1px', marginTop: '2px' }}>КОЛЛЕКЦИЯ ВКУСОВ</p>
                                 </div>
-                                <button onClick={() => setIsTobaccoModalOpen(false)} style={{ background: 'var(--bg-tertiary)', border: 'none', color: 'var(--text-primary)', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <button onClick={() => setIsTobaccoModalOpen(false)} style={{ background: 'var(--bg-tertiary)', border: 'none', color: 'var(--text-primary)', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <X size={20} />
                                 </button>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '14px' }}>
                                 {dishes?.filter(d => d.category === 'Табак').map((t: any) => (
                                     <div
                                         key={t.id}
@@ -706,21 +711,22 @@ const CustomerMenu = () => {
                                         style={{
                                             background: 'var(--bg-secondary)', borderRadius: '24px', overflow: 'hidden', border: '1px solid',
                                             borderColor: selectedTobacco?.id === t.id ? 'var(--primary)' : 'var(--border-color)',
-                                            display: 'flex', flexDirection: 'column', transition: 'all 0.2s', position: 'relative'
+                                            display: 'flex', flexDirection: 'column', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', position: 'relative',
+                                            boxShadow: selectedTobacco?.id === t.id ? '0 0 20px var(--primary-bg-alpha)' : 'none'
                                         }}
                                     >
-                                        <div style={{ width: '100%', height: '100px', overflow: 'hidden' }}>
+                                        <div style={{ width: '100%', height: '110px', overflow: 'hidden', position: 'relative' }}>
                                             <img src={t.imageUrl} alt={t.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            {selectedTobacco?.id === t.id && (
+                                                <div style={{ position: 'absolute', inset: 0, background: 'var(--primary-bg-alpha)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                    <CheckCircle size={32} color="white" />
+                                                </div>
+                                            )}
                                         </div>
-                                        <div style={{ padding: '12px' }}>
-                                            <h3 style={{ fontSize: '14px', fontWeight: '800', margin: '0 0 4px 0' }}>{t.name}</h3>
-                                            <p style={{ fontSize: '10px', opacity: 0.6, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.4' }}>{t.description}</p>
+                                        <div style={{ padding: '14px' }}>
+                                            <h3 style={{ fontSize: '15px', fontWeight: '900', margin: '0 0 4px 0', color: selectedTobacco?.id === t.id ? 'var(--primary)' : 'var(--text-primary)' }}>{t.name}</h3>
+                                            <p style={{ fontSize: '11px', opacity: 0.6, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.4', fontWeight: '500' }}>{t.description}</p>
                                         </div>
-                                        {selectedTobacco?.id === t.id && (
-                                            <div style={{ position: 'absolute', top: '8px', right: '8px', background: 'var(--primary)', color: 'white', borderRadius: '50%', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
-                                                <Zap size={10} fill="white" />
-                                            </div>
-                                        )}
                                     </div>
                                 ))}
                             </div>
