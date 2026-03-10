@@ -7,7 +7,7 @@
 ## 🏗 Настройка проекта в Railway
 1. **GitHub**: Подключите свой репозиторий.
 2. **Root Directory**: Укажите `server`.
-3. **Build Command**: `npx prisma generate && npm run build`
+3. Build Command: `npm run build`
 4. **Start Command**: `npm start`
 
 ---
