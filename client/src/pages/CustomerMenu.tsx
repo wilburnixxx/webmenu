@@ -40,7 +40,7 @@ const CustomerMenu = () => {
 
     // Hookah Constructor State
     const [hookahStrength, setHookahStrength] = useState<number>(5);
-    const [selectedTobacco, setSelectedTobacco] = useState<any>(null);
+    const [selectedTobaccos, setSelectedTobaccos] = useState<any[]>([]);
     const [selectedLiquid, setSelectedLiquid] = useState<any>(null);
     const [isTobaccoModalOpen, setIsTobaccoModalOpen] = useState(false);
 
@@ -372,15 +372,31 @@ const CustomerMenu = () => {
                                 onClick={() => setIsTobaccoModalOpen(true)}
                                 style={{
                                     width: '100%', height: '56px', borderRadius: '16px',
-                                    background: selectedTobacco ? 'var(--primary-bg-alpha)' : 'var(--bg-tertiary)',
-                                    border: '1px solid', borderColor: selectedTobacco ? 'var(--primary)' : 'var(--border-color)',
-                                    color: selectedTobacco ? 'var(--primary)' : 'var(--text-primary)',
+                                    background: selectedTobaccos.length > 0 ? 'var(--primary-bg-alpha)' : 'var(--bg-tertiary)',
+                                    border: '1px solid', borderColor: selectedTobaccos.length > 0 ? 'var(--primary)' : 'var(--border-color)',
+                                    color: selectedTobaccos.length > 0 ? 'var(--primary)' : 'var(--text-primary)',
                                     display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px',
                                     cursor: 'pointer', transition: 'all 200ms'
                                 }}
                             >
-                                <span style={{ fontWeight: '800' }}>{selectedTobacco ? selectedTobacco.name : 'Выбрать табак'}</span>
-                                <ChevronDown size={18} style={{ opacity: 0.5 }} />
+                                <span style={{ fontWeight: '800' }}>
+                                    {selectedTobaccos.length > 0
+                                        ? selectedTobaccos.map(t => t.name).join(' + ')
+                                        : 'Выбрать табак (1-3)'}
+                                </span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    {selectedTobaccos.length > 0 && (
+                                        <span style={{
+                                            background: 'var(--primary)', color: 'white',
+                                            fontSize: '10px', height: '18px', width: '18px',
+                                            borderRadius: '50%', display: 'flex', alignItems: 'center',
+                                            justifyContent: 'center', fontWeight: '900'
+                                        }}>
+                                            {selectedTobaccos.length}
+                                        </span>
+                                    )}
+                                    <ChevronDown size={18} style={{ opacity: 0.5 }} />
+                                </div>
                             </button>
                         </div>
 
@@ -407,23 +423,31 @@ const CustomerMenu = () => {
 
                         <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
                             <button
-                                disabled={!selectedTobacco || !selectedLiquid}
+                                disabled={selectedTobaccos.length === 0 || !selectedLiquid}
                                 onClick={() => {
+                                    const tobaccoNames = selectedTobaccos.map(t => t.name).join(' + ');
+                                    const totalTobaccoPrice = selectedTobaccos.reduce((sum, t) => sum + t.price, 0);
+
                                     addToCart({
-                                        ...selectedTobacco,
-                                        id: selectedTobacco.id,
-                                        name: `Hookah: ${selectedTobacco.name}`,
-                                        price: selectedTobacco.price + (selectedLiquid?.price || 0),
+                                        id: `hookah-${Date.now()}`,
+                                        name: `Hookah: ${tobaccoNames}`,
+                                        price: totalTobaccoPrice + (selectedLiquid?.price || 0),
                                         description: `Крепость: ${hookahStrength}/10, Наполнение: ${selectedLiquid.name}`,
-                                    });
-                                    setSelectedTobacco(null);
+                                        category: 'Hookah',
+                                        imageUrl: '',
+                                        isAvailable: true,
+                                        allergens: [],
+                                        createdAt: new Date().toISOString(),
+                                        updatedAt: new Date().toISOString()
+                                    } as any);
+                                    setSelectedTobaccos([]);
                                     setSelectedLiquid(null);
                                     setIsCartOpen(true);
                                 }}
                                 className="btn-primary"
                                 style={{ flex: 7, height: '56px', borderRadius: '16px' }}
                             >
-                                ДОБАВИТЬ ({(selectedTobacco?.price || 0) + (selectedLiquid?.price || 0)} ₸)
+                                ДОБАВИТЬ ({selectedTobaccos.reduce((sum, t) => sum + t.price, 0) + (selectedLiquid?.price || 0)} ₸)
                             </button>
                             <button
                                 onClick={() => setIsAiOpen(true)}
@@ -704,31 +728,56 @@ const CustomerMenu = () => {
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '14px' }}>
-                                {dishes?.filter(d => d.category === 'Табак').map((t: any) => (
-                                    <div
-                                        key={t.id}
-                                        onClick={() => { setSelectedTobacco(t); setIsTobaccoModalOpen(false); }}
-                                        style={{
-                                            background: 'var(--bg-secondary)', borderRadius: '24px', overflow: 'hidden', border: '1px solid',
-                                            borderColor: selectedTobacco?.id === t.id ? 'var(--primary)' : 'var(--border-color)',
-                                            display: 'flex', flexDirection: 'column', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', position: 'relative',
-                                            boxShadow: selectedTobacco?.id === t.id ? '0 0 20px var(--primary-bg-alpha)' : 'none'
-                                        }}
-                                    >
-                                        <div style={{ width: '100%', height: '110px', overflow: 'hidden', position: 'relative' }}>
-                                            <img src={t.imageUrl} alt={t.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            {selectedTobacco?.id === t.id && (
-                                                <div style={{ position: 'absolute', inset: 0, background: 'var(--primary-bg-alpha)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                    <CheckCircle size={32} color="white" />
-                                                </div>
-                                            )}
+                                {dishes?.filter(d => d.category === 'Табак').map((t: any) => {
+                                    const isSelected = selectedTobaccos.some(item => item.id === t.id);
+                                    const selectIndex = selectedTobaccos.findIndex(item => item.id === t.id);
+
+                                    return (
+                                        <div
+                                            key={t.id}
+                                            onClick={() => {
+                                                if (isSelected) {
+                                                    setSelectedTobaccos(prev => prev.filter(item => item.id !== t.id));
+                                                } else {
+                                                    if (selectedTobaccos.length < 3) {
+                                                        setSelectedTobaccos(prev => [...prev, t]);
+                                                    }
+                                                }
+                                            }}
+                                            style={{
+                                                background: 'var(--bg-secondary)', borderRadius: '24px', overflow: 'hidden', border: '1px solid',
+                                                borderColor: isSelected ? 'var(--primary)' : 'var(--border-color)',
+                                                display: 'flex', flexDirection: 'column', transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)', position: 'relative',
+                                                boxShadow: isSelected ? '0 0 20px var(--primary-bg-alpha)' : 'none',
+                                                opacity: !isSelected && selectedTobaccos.length >= 3 ? 0.5 : 1
+                                            }}
+                                        >
+                                            <div style={{ width: '100%', height: '110px', overflow: 'hidden', position: 'relative' }}>
+                                                <img src={t.imageUrl} alt={t.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                {isSelected && (
+                                                    <div style={{
+                                                        position: 'absolute', inset: 0,
+                                                        background: 'var(--primary-bg-alpha)',
+                                                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                                    }}>
+                                                        <div style={{
+                                                            background: 'var(--primary)', color: 'white',
+                                                            width: '24px', height: '24px', borderRadius: '50%',
+                                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                            fontSize: '12px', fontWeight: '900', border: '2px solid white'
+                                                        }}>
+                                                            {selectIndex + 1}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div style={{ padding: '14px' }}>
+                                                <h3 style={{ fontSize: '15px', fontWeight: '900', margin: '0 0 4px 0', color: isSelected ? 'var(--primary)' : 'var(--text-primary)' }}>{t.name}</h3>
+                                                <p style={{ fontSize: '11px', opacity: 0.6, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.4', fontWeight: '500' }}>{t.description}</p>
+                                            </div>
                                         </div>
-                                        <div style={{ padding: '14px' }}>
-                                            <h3 style={{ fontSize: '15px', fontWeight: '900', margin: '0 0 4px 0', color: selectedTobacco?.id === t.id ? 'var(--primary)' : 'var(--text-primary)' }}>{t.name}</h3>
-                                            <p style={{ fontSize: '11px', opacity: 0.6, margin: 0, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', lineHeight: '1.4', fontWeight: '500' }}>{t.description}</p>
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </motion.div>
                     </div>
