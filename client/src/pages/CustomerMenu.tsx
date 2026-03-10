@@ -138,11 +138,19 @@ const CustomerMenu = () => {
         orderMutation.mutate({
             tableNumber,
             totalPrice: totalPrice,
-            items: (cart as any[]).map((item: any) => ({
-                dishId: item.dish.id,
-                quantity: item.quantity,
-                price: item.dish.price
-            })),
+            items: (cart as any[]).map((item: any) => {
+                let dishId = item.dish.id;
+                // If it's a virtual hookah item, use the original tobacco ID or find a fallback tobacco dish ID
+                if (String(dishId).startsWith('hookah-')) {
+                    dishId = item.dish.originalTobaccoId || (dishes as any[])?.find(d => d.category === 'Табак')?.id;
+                }
+                
+                return {
+                    dishId: dishId,
+                    quantity: item.quantity,
+                    price: item.dish.price
+                };
+            }),
             comments: finalComments
         });
     };
@@ -430,6 +438,7 @@ const CustomerMenu = () => {
 
                                     addToCart({
                                         id: `hookah-${Date.now()}`,
+                                        originalTobaccoId: selectedTobaccos[0]?.id,
                                         name: `Hookah: ${tobaccoNames}`,
                                         price: totalTobaccoPrice + (selectedLiquid?.price || 0),
                                         description: `Крепость: ${hookahStrength}/10, Наполнение: ${selectedLiquid.name}`,
