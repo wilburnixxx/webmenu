@@ -74,7 +74,8 @@ app.post(['/auth/login', '/api/auth/login'], async (req: any, res: any) => {
 });
 app.get(['/ai/instructions', '/api/ai/instructions'], checkAuth, async (req: any, res: any) => {
     try {
-        const instruction = await prisma.aIInstruction.findFirst({ orderBy: { version: 'desc' } });
+        const instructions = await prisma.aIInstruction.findMany({ orderBy: { version: 'desc' }, take: 1 });
+        const instruction = instructions[0];
         res.json(instruction || { promptText: "Ты - Марк, виртуальный кальянный мастер-консультант." });
     } catch (e: any) { res.status(500).json({ error: e.message }); }
 });
@@ -269,7 +270,8 @@ app.get(['/image/:id', '/api/image/:id'], async (req: any, res: any) => {
         }
 
         const type = matches[1];
-        const buffer = Buffer.from(matches[2], 'base64');
+        const base64Data = matches[2] || '';
+        const buffer = Buffer.from(base64Data, 'base64');
 
         // Set strong cache header (1 year caching, as IDs are unique UUIDs)
         res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
@@ -302,7 +304,8 @@ app.post(['/ai/chat', '/api/ai/chat'], async (req: any, res: any) => {
         const { messages } = req.body;
         const dishes = await prisma.dish.findMany({ where: { isAvailable: true } });
         const menuContext = dishes.map(d => `[Категория: ${d.category || 'Разное'}] ${d.name} (${d.price}₽) - ${d.description}`).join('\n');
-        const instruction = await prisma.aIInstruction.findFirst({ orderBy: { version: 'desc' } });
+        const instructions = await prisma.aIInstruction.findMany({ orderBy: { version: 'desc' }, take: 1 });
+        const instruction = instructions[0];
         const systemRules = "ОТВЕЧАЙ МАКСИМАЛЬНО КРАТКО (2-3 предложения). БЕЗ ВОДЫ. ПРАВИЛО №1: Пока гость не выбрал кальян/табак, ТЕБЕ КАТЕГОРИЧЕСКИ ЗАПРЕЩЕНО упоминать напитки, еду и другие товары. Консультируй ТОЛЬКО по вкусам и крепости табаков. ПРАВИЛО №2: Предлагай напитки ТОЛЬКО как доп. продажу (апселл), когда кальян уже выбран. НИКАКИХ markdown таблиц. Не перечисляй всё меню. Ты кальянный мастер Марк. НИКОГДА не говори, что ты ИИ.";
         const systemPrompt = `${instruction?.promptText || ''}\n\n${systemRules}\n\nДоступное меню:\n${menuContext}`;
         
