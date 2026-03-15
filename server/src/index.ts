@@ -14,7 +14,8 @@ const prisma = new PrismaClient();
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY || '' });
 
 app.use(cors({ origin: '*', methods: '*', allowedHeaders: '*' }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' })); // Увеличен лимит для загрузки фото
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 app.use((req, res, next) => {
     console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.url}`);
@@ -238,6 +239,47 @@ app.patch(['/orders/:id', '/api/orders/:id'], checkAuth, async (req: any, res: a
     await logAction('СТАТУС ЗАКАЗА', `Заказ ${result.id.slice(0, 5)} -> ${req.body.status}`, 'Официант');
     res.json(result);
 });
+
+// --- File Upload system using Database Base64 Strings ---
+app.post(['/upload', '/api/upload'], checkAuth, async (req: any, res: any) => {
+    try {
+        const { data } = req.body;
+        if (!data || !data.startsWith('data:image')) {
+            return res.status(400).json({ error: 'Неверный формат изображения или файл не передан' });
+        }
+        const img = await prisma.image.create({ data: { data } });
+        // Getting host correctly for absolute URLs isn't strictly necessary, 
+        // a relative /api/image/ path works perfectly since frontend prepends the API URL
+        res.json({ url: `/api/image/${img.id}` });
+    } catch (e: any) {
+        console.error('Ошибка загрузки фото:', e.message);
+        res.status(500).json({ error: e.message });
+    }
+});
+
+app.get(['/image/:id', '/api/image/:id'], async (req: any, res: any) => {
+    try {
+        const img = await prisma.image.findUnique({ where: { id: req.params.id } });
+        if (!img) return res.status(404).send('Изображение не найдено');
+
+        // "data:image/jpeg;base64,....." -> Extract MIME type & base64 content
+        const matches = img.data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        if (!matches || matches.length !== 3) {
+            return res.status(500).send('Ошибка чтения формата в БД');
+        }
+
+        const type = matches[1];
+        const buffer = Buffer.from(matches[2], 'base64');
+
+        // Set strong cache header (1 year caching, as IDs are unique UUIDs)
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        res.setHeader('Content-Type', type);
+        res.send(buffer);
+    } catch (e: any) {
+        res.status(500).send('Ошибка при получении фото');
+    }
+});
+
 app.post(['/calls', '/api/calls'], async (req: any, res: any) => {
     try {
         const { tableNumber, type } = req.body;

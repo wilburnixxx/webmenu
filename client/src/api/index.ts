@@ -127,7 +127,8 @@ export const menuService = {
         }
     },
     createPromo: async (promo: any) => (await api.post('/promos', promo)).data,
-    deletePromo: async (id: string) => (await api.delete(`/promos/${id}`)).data
+    deletePromo: async (id: string) => (await api.delete(`/promos/${id}`)).data,
+    uploadImage: async (base64Data: string) => (await api.post('/upload', { data: base64Data })).data
 };
 
 export const orderService = {

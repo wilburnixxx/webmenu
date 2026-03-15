@@ -102,3 +102,9 @@ model Promo {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
 }
+
+model Image {
+  id        String   @id @default(uuid())
+  data      String
+  createdAt DateTime @default(now())
+}

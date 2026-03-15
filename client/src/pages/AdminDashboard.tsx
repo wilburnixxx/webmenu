@@ -4,7 +4,7 @@ import { menuService } from '../api';
 import {
     Plus, Trash2, DollarSign, Package,
     X, Settings, GripVertical, Sparkles, Image as ImageIcon,
-    ChevronDown, ChevronUp
+    ChevronDown, ChevronUp, Upload
 } from 'lucide-react';
 import { motion, AnimatePresence, Reorder } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
@@ -479,7 +479,27 @@ const AdminDashboard = () => {
                             }} style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '40px' }}>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                     <input name="title" placeholder="Заголовок акции (опц.)" required style={{ height: '56px', padding: '0 20px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', color: 'var(--text-primary)' }} />
-                                    <input name="imageUrl" placeholder="URL фото (1200x600)" required style={{ height: '56px', padding: '0 20px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', color: 'var(--text-primary)' }} />
+                                    <div style={{ position: 'relative', height: '56px', display: 'flex', alignItems: 'center' }}>
+                                        <input type="file" accept="image/*" onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+                                            const reader = new FileReader();
+                                            reader.onload = async (ev) => {
+                                                const base64 = ev.target?.result as string;
+                                                const uploadInput = document.getElementById('promoImageUrlInput') as HTMLInputElement;
+                                                uploadInput.value = 'Загрузка...';
+                                                try {
+                                                    const res = await menuService.uploadImage(base64);
+                                                    uploadInput.value = res.url;
+                                                } catch (err) { alert('Ошибка загрузки фото'); uploadInput.value = ''; }
+                                            };
+                                            reader.readAsDataURL(file);
+                                        }} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', zIndex: 2 }} />
+                                        <input id="promoImageUrlInput" name="imageUrl" placeholder="Нажмите для загрузки фото с устройства" readOnly required style={{ width: '100%', height: '56px', padding: '0 20px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-tertiary)', color: 'var(--text-primary)', pointerEvents: 'none' }} />
+                                        <div style={{ position: 'absolute', right: '16px', pointerEvents: 'none', color: 'var(--primary)', zIndex: 1 }}>
+                                            <Upload size={20} />
+                                        </div>
+                                    </div>
                                 </div>
                                 <button type="submit" className="btn-primary" style={{ height: '56px', borderRadius: '16px' }}>ДОБАВИТЬ АКЦИЮ</button>
                             </form>
@@ -687,9 +707,28 @@ const AdminDashboard = () => {
                                     </div>
                                 </div>
 
-                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                    <label style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-secondary)' }}>Ссылка на фото (Unsplash / CDN)</label>
-                                    <input value={editingDish.imageUrl} onChange={e => setEditingDish({ ...editingDish, imageUrl: e.target.value })} style={{ height: '52px', padding: '0 20px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', fontSize: '14px', color: 'var(--text-primary)' }} placeholder="https://images.unsplash.com/..." />
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', position: 'relative' }}>
+                                    <label style={{ fontSize: '13px', fontWeight: '800', color: 'var(--text-secondary)' }}>Фотография товара (нажмите чтобы загрузить)</label>
+                                    <div style={{ position: 'relative', height: '52px', display: 'flex', alignItems: 'center', width: '100%' }}>
+                                        <input type="file" accept="image/*" onChange={async (e) => {
+                                            const file = e.target.files?.[0];
+                                            if (!file) return;
+                                            const reader = new FileReader();
+                                            reader.onload = async (ev) => {
+                                                const base64 = ev.target?.result as string;
+                                                setEditingDish({ ...editingDish, imageUrl: 'Загрузка...' });
+                                                try {
+                                                    const res = await menuService.uploadImage(base64);
+                                                    setEditingDish({ ...editingDish, imageUrl: res.url });
+                                                } catch (err) { alert('Ошибка загрузки'); setEditingDish({ ...editingDish, imageUrl: '' }); }
+                                            };
+                                            reader.readAsDataURL(file);
+                                        }} style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer', zIndex: 2, width: '100%' }} />
+                                        <input value={editingDish.imageUrl} readOnly placeholder="Нажмите чтобы выбрать фото..." style={{ width: '100%', height: '52px', padding: '0 20px', borderRadius: '16px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', fontSize: '14px', color: 'var(--text-primary)' }} />
+                                        <div style={{ position: 'absolute', right: '16px', pointerEvents: 'none', color: 'var(--primary)', zIndex: 1, display: 'flex', alignItems: 'center' }}>
+                                            <Upload size={18} />
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
