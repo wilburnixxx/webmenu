@@ -148,4 +148,10 @@ export const authService = {
     login: async (credentials: any) => (await api.post('/auth/login', credentials)).data
 };
 
+export const getFullImageUrl = (url: string | null | undefined) => {
+    if (!url) return undefined;
+    if (url.startsWith('/api/')) return `${BASE_URL}${url}`;
+    return url;
+};
+
 export default api;

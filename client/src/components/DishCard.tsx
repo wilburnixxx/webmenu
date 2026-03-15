@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import type { Dish } from '../types';
+import { getFullImageUrl } from '../api';
 
 interface DishCardProps {
     dish: Dish;
@@ -36,7 +37,7 @@ const DishCard = ({ dish, onAddToCart, onShowDetails }: DishCardProps) => {
                 }}
             >
                 <img
-                    src={dish.imageUrl ?? undefined}
+                    src={getFullImageUrl(dish.imageUrl) ?? undefined}
                     alt={dish.name}
                     style={{
                         position: 'absolute',

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { menuService } from '../api';
+import { menuService, getFullImageUrl } from '../api';
 import {
     Plus, Trash2, DollarSign, Package,
     X, Settings, GripVertical, Sparkles, Image as ImageIcon,
@@ -338,7 +338,7 @@ const AdminDashboard = () => {
                                                     >
                                                         <div style={{ cursor: 'grab', color: 'var(--text-tertiary)' }}><GripVertical size={20} /></div>
                                                         <div style={{ width: '80px', height: '60px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
-                                                            <img src={dish.imageUrl} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                            <img src={getFullImageUrl(dish.imageUrl)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                                         </div>
                                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                                                             <span style={{ fontWeight: '800', fontSize: '15px' }}>{dish.name}</span>
@@ -507,7 +507,7 @@ const AdminDashboard = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
                                 {promos ? (promos as any[]).map((p: any) => (
                                     <div key={p.id} style={{ position: 'relative', borderRadius: '24px', overflow: 'hidden', aspectRatio: '2/1', border: '1px solid var(--border-color)' }}>
-                                        <img src={p.imageUrl} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        <img src={getFullImageUrl(p.imageUrl)} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)', display: 'flex', alignItems: 'flex-end', padding: '16px' }}>
                                             <span style={{ color: 'white', fontWeight: '800', fontSize: '14px' }}>{p.title}</span>
                                         </div>

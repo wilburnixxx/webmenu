@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { menuService, orderService, callService } from '../api';
+import { menuService, orderService, callService, getFullImageUrl } from '../api';
 import { ShoppingBag, Send, X, Bell, Flame, Wind, Zap, CheckCircle, Clock, XCircle, Archive, Trash2, GripVertical, Sparkles, User, Package, Info, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../context/CartContext';
@@ -282,7 +282,7 @@ const CustomerMenu = () => {
                             background: 'var(--bg-secondary)', position: 'relative',
                             boxShadow: '0 8px 24px rgba(0,0,0,0.15)'
                         }}>
-                            <img src={p.imageUrl} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            <img src={getFullImageUrl(p.imageUrl)} alt={p.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             <div style={{
                                 position: 'absolute', inset: 0,
                                 background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
@@ -491,7 +491,7 @@ const CustomerMenu = () => {
                                 <div key={item.id} style={{ background: 'var(--bg-secondary)', borderRadius: '24px', overflow: 'hidden', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
                                     {item.imageUrl && (
                                         <div style={{ width: '100%', height: '120px', overflow: 'hidden' }}>
-                                            <img src={item.imageUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            <img src={getFullImageUrl(item.imageUrl)} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                         </div>
                                     )}
                                     <div style={{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -776,7 +776,7 @@ const CustomerMenu = () => {
                                             }}
                                         >
                                             <div style={{ width: '100%', height: '110px', overflow: 'hidden', position: 'relative' }}>
-                                                <img src={t.imageUrl} alt={t.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                                <img src={getFullImageUrl(t.imageUrl)} alt={t.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                                 {isSelected && (
                                                     <div style={{
                                                         position: 'absolute', inset: 0,
